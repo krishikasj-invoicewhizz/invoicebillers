@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoicebillers – Send Invoices via WhatsApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --g: #22c55e;
+      --g2: #16a34a;
+      --g-glow: rgba(34,197,94,0.15);
+      --black: #060a06;
+      --s1: #0d120d;
+      --s2: #131a13;
+      --s3: #1a221a;
+      --border: rgba(34,197,94,0.12);
+      --border2: rgba(255,255,255,0.06);
+      --text: #e2ebe2;
+      --muted: #6b7f6b;
+      --white: #ffffff;
+      --fh: 'Plus Jakarta Sans', sans-serif;
+      --fs: 'Instrument Serif', serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--fh);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 2rem;
+      background: rgba(6,10,6,0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 800; font-size: 1.15rem; color: #fff;
+      text-decoration: none; letter-spacing: -0.02em;
+    }
+    .logo-mark {
+      width: 32px; height: 32px; background: var(--g);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center;
+    }
+    .logo-mark svg { width: 16px; height: 16px; fill: #000; }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--g) !important; color: #000 !important;
+      padding: 0.5rem 1.2rem; border-radius: 8px;
+      font-weight: 700 !important; font-size: 0.85rem !important;
+      transition: opacity 0.2s !important;
+    }
+    .nav-cta:hover { opacity: 0.88; }
+    .hamburger { display: none; flex-direction: column; gap: 4px; cursor: pointer; background: none; border: none; padding: 4px; }
+    .hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; display: block; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100svh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 7rem 1.5rem 4rem;
+      position: relative;
+    }
+    .hero-glow {
+      position: absolute; width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(34,197,94,0.08) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 100px; padding: 0.35rem 0.9rem;
+      font-size: 0.78rem; color: var(--g); font-weight: 600;
+      margin-bottom: 1.8rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .pill-dot { width: 6px; height: 6px; background: var(--g); border-radius: 50%; animation: blink 1.5s ease infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-family: var(--fh);
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      color: #fff;
+      max-width: 680px;
+      margin-bottom: 1.2rem;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+    .hero h1 .accent {
+      font-family: var(--fs);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--g);
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 440px;
+      line-height: 1.65;
+      margin-bottom: 2.2rem;
+      font-weight: 400;
+      animation: fadeUp 0.5s 0.15s ease both;
+    }
+    .hero-btns {
+      display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+    .btn-p {
+      background: var(--g); color: #000;
+      padding: 0.75rem 1.6rem; border-radius: 10px;
+      font-weight: 700; font-size: 0.92rem; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      transition: opacity 0.2s, transform 0.2s;
+      border: none; cursor: pointer; font-family: var(--fh);
+    }
+    .btn-p:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-s {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 0.75rem 1.6rem; border-radius: 10px;
+      font-size: 0.92rem; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      transition: border-color 0.2s, background 0.2s;
+      font-family: var(--fh); cursor: pointer;
+    }
+    .btn-s:hover { border-color: var(--g); background: var(--g-glow); }
+
+    /* ── MOCKUP ── */
+    .hero-visual {
+      margin-top: 4rem; width: 100%; max-width: 400px;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+    .phone-frame {
+      background: var(--s1); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.06);
+    }
+    .phone-bar {
+      background: var(--s2); padding: 0.85rem 1rem;
+      display: flex; align-items: center; gap: 0.7rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .phone-av { width: 34px; height: 34px; background: var(--g); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .phone-name { font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .phone-online { font-size: 0.68rem; color: var(--g); }
+    .phone-msgs { padding: 1rem; display: flex; flex-direction: column; gap: 0.65rem; }
+    .msg { max-width: 82%; padding: 0.55rem 0.85rem; border-radius: 12px; font-size: 0.8rem; line-height: 1.5; }
+    .msg-in { background: var(--s2); align-self: flex-start; border-bottom-left-radius: 3px; }
+    .msg-out { background: #1a3d23; align-self: flex-end; border-bottom-right-radius: 3px; }
+    .inv-card {
+      background: var(--s2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.75rem; font-size: 0.75rem;
+      align-self: flex-start; max-width: 90%;
+    }
+    .inv-card-title { font-weight: 700; color: var(--g); margin-bottom: 0.5rem; font-size: 0.8rem; }
+    .inv-row { display: flex; justify-content: space-between; color: var(--muted); margin-bottom: 0.2rem; }
+    .inv-total { display: flex; justify-content: space-between; font-weight: 700; color: #fff; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.5rem; }
+    .inv-pay { width: 100%; background: var(--g); color: #000; border: none; border-radius: 7px; padding: 0.45rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 0.6rem; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; margin-top: 3.5rem; width: 100%; max-width: 720px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .stat-cell { background: var(--s1); padding: 1.4rem 1rem; text-align: center; border-right: 1px solid var(--border); }
+    .stat-cell:last-child { border-right: none; }
+    .stat-n { font-family: var(--fh); font-size: 1.6rem; font-weight: 800; color: var(--g); line-height: 1; }
+    .stat-l { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ── SECTIONS ── */
+    section { padding: 5rem 1.5rem; }
+    .container { max-width: 1060px; margin: 0 auto; }
+    .sec-tag { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--g); margin-bottom: 0.7rem; }
+    .sec-h { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; color: #fff; margin-bottom: 0.8rem; }
+    .sec-p { color: var(--muted); font-size: 0.95rem; max-width: 440px; line-height: 1.7; }
+    .divider { height: 1px; background: var(--border); max-width: 1060px; margin: 0 auto; }
+
+    /* ── STEPS ── */
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; margin-top: 3rem; }
+    .step { background: var(--s1); border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem; transition: border-color 0.25s, transform 0.25s; }
+    .step:hover { border-color: rgba(34,197,94,0.3); transform: translateY(-3px); }
+    .step-n { font-size: 2.5rem; font-weight: 800; color: rgba(34,197,94,0.1); line-height: 1; margin-bottom: 0.7rem; font-family: var(--fh); }
+    .step-t { font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.4rem; }
+    .step p { color: var(--muted); font-size: 0.85rem; }
+
+    /* ── FEATURES ── */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1rem; margin-top: 2.5rem; }
+    .feat { background: var(--s1); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: border-color 0.25s, transform 0.25s; }
+    .feat:hover { border-color: rgba(34,197,94,0.3); transform: translateY(-2px); }
+    .feat-ic { width: 40px; height: 40px; background: rgba(34,197,94,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.9rem; }
+    .feat h3 { font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.35rem; }
+    .feat p { color: var(--muted); font-size: 0.84rem; line-height: 1.6; }
+
+    /* ── PRICING ── */
+    #pricing { background: var(--s1); }
+    .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 1rem; margin-top: 3rem; }
+    .plan { background: var(--black); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem; position: relative; transition: transform 0.25s; }
+    .plan:hover { transform: translateY(-3px); }
+    .plan-pop { border-color: var(--g); box-shadow: 0 0 40px rgba(34,197,94,0.08); }
+    .plan-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--g); color: #000; font-size: 0.68rem; font-weight: 800; padding: 0.22rem 0.85rem; border-radius: 100px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+    .plan-name { font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .plan-price { font-size: 2.4rem; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 0.2rem; letter-spacing: -0.04em; }
+    .plan-price sub { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
+    .plan-desc { color: var(--muted); font-size: 0.82rem; margin-bottom: 1.4rem; }
+    .plan-feats { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.8rem; }
+    .plan-feats li { font-size: 0.84rem; display: flex; align-items: center; gap: 0.5rem; }
+    .plan-feats li::before { content: '✓'; color: var(--g); font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
+    .plan-feats li.no { color: var(--muted); }
+    .plan-feats li.no::before { content: '—'; color: var(--muted); }
+    .plan-btn { display: block; width: 100%; text-align: center; padding: 0.75rem; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; font-family: var(--fh); text-decoration: none; transition: opacity 0.2s; }
+    .plan-btn-g { background: var(--g); color: #000; }
+    .plan-btn-g:hover { opacity: 0.88; }
+    .plan-btn-o { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+    .plan-btn-o:hover { border-color: var(--g); }
+
+    /* ── TESTIMONIALS ── */
+    .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 1rem; margin-top: 2.5rem; }
+    .testi { background: var(--s1); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+    .testi-stars { color: var(--g); font-size: 0.8rem; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+    .testi-q { font-family: var(--fs); font-style: italic; font-size: 1rem; color: var(--text); line-height: 1.65; margin-bottom: 1.1rem; }
+    .testi-au { display: flex; align-items: center; gap: 0.75rem; }
+    .testi-av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--g2), var(--g)); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: #000; }
+    .testi-name { font-size: 0.84rem; font-weight: 700; color: #fff; }
+    .testi-role { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 2.5rem; max-width: 680px; }
+    .faq-item { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .faq-q { width: 100%; background: none; border: none; padding: 1.1rem 1.3rem; text-align: left; color: #fff; font-family: var(--fh); font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .faq-q .arr { width: 24px; height: 24px; background: rgba(34,197,94,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--g); flex-shrink: 0; transition: transform 0.3s; }
+    .faq-item.open .arr { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 1.3rem 1.1rem; color: var(--muted); font-size: 0.87rem; line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
+
+    /* ── CTA SECTION ── */
+    .cta-wrap { text-align: center; padding: 5rem 1.5rem; position: relative; overflow: hidden; }
+    .cta-glow { position: absolute; width: 500px; height: 400px; background: radial-gradient(ellipse, rgba(34,197,94,0.08) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+    .cta-wrap h2 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; color: #fff; margin-bottom: 0.8rem; }
+    .cta-wrap p { color: var(--muted); max-width: 380px; margin: 0 auto 2.2rem; font-size: 0.95rem; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--s1); border-top: 1px solid var(--border); padding: 3rem 1.5rem; }
+    .foot-inner { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 2.5rem; justify-content: space-between; }
+    .foot-brand p { color: var(--muted); font-size: 0.82rem; max-width: 200px; margin-top: 0.7rem; line-height: 1.6; }
+    .foot-col h4 { font-size: 0.78rem; font-weight: 700; color: #fff; margin-bottom: 0.9rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .foot-col a { display: block; color: var(--muted); text-decoration: none; font-size: 0.83rem; margin-bottom: 0.45rem; transition: color 0.2s; }
+    .foot-col a:hover { color: var(--g); }
+    .foot-bot { max-width: 1060px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem; color: var(--muted); font-size: 0.78rem; }
+
+    /* ── REVEAL ANIMATION ── */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── MOBILE ── */
+    @media (max-width: 640px) {
+      nav { padding: 0.8rem 1.2rem; }
+      .nav-links { display: none; position: fixed; inset: 0; top: 56px; background: var(--black); flex-direction: column; padding: 2rem 1.5rem; gap: 1.3rem; z-index: 99; }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; }
+      .stats-bar { grid-template-columns: repeat(2,1fr); }
+      .stat-cell:nth-child(2) { border-right: none; }
+      .stat-cell:nth-child(3) { border-top: 1px solid var(--border); }
+      .stat-cell:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.95rem; }
+      .hero-sub { font-size: 0.93rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <span class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.852L.057 23.5a.5.5 0 0 0 .612.612l5.648-1.475A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.869 0-3.618-.488-5.137-1.342l-.366-.213-3.795.993.993-3.794-.213-.366A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    </span>
+    Invoicebillers
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How it Works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#" onclick="openModal('signin');return false;">Sign In</a></li>
+    <li><a href="#" class="nav-cta" onclick="openModal('signup');return false;">Get Started Free</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="pill"><span class="pill-dot"></span> Now live — send invoices in seconds</div>
+  <h1>The Easiest Way to<br/>Invoice via <span class="accent">WhatsApp</span></h1>
+  <p class="hero-sub">Create professional invoices and send them directly on WhatsApp. Your clients pay in one tap — no app needed.</p>
+  <div class="hero-btns">
+    <a href="#" class="btn-p" onclick="openModal('signup');return false;">Get Started Free →</a>
+    <a href="#how-it-works" class="btn-s">See How It Works</a>
+  </div>
+
+  <!-- Phone Mockup -->
+  <div class="hero-visual">
+    <div class="phone-frame">
+      <div class="phone-bar">
+        <div class="phone-av">💼</div>
+        <div>
+          <div class="phone-name">Invoicebillers Bot</div>
+          <div class="phone-online">● Online</div>
+        </div>
+      </div>
+      <div class="phone-msgs">
+        <div class="msg msg-in">Hi! Type <strong>/invoice</strong> to create a new invoice 📋</div>
+        <div class="msg msg-out">/invoice new</div>
+        <div class="msg msg-in">Great! What's the client's name?</div>
+        <div class="msg msg-out">John Smith</div>
+        <div class="msg msg-in">Done! Here's your invoice:</div>
+        <div class="inv-card">
+          <div class="inv-card-title">📄 Invoice #INV-0042</div>
+          <div class="inv-row"><span>Web Design</span><span>$800</span></div>
+          <div class="inv-row"><span>SEO Setup</span><span>$200</span></div>
+          <div class="inv-total"><span>Total</span><span>$1,000</span></div>
+          <button class="inv-pay">💳 Pay Now</button>
+        </div>
+        <div class="msg msg-in">✅ Invoice sent! You'll be notified when paid.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar reveal">
+    <div class="stat-cell"><div class="stat-n">12k+</div><div class="stat-l">Invoices Sent</div></div>
+    <div class="stat-cell"><div class="stat-n">98%</div><div class="stat-l">Payment Rate</div></div>
+    <div class="stat-cell"><div class="stat-n">3 min</div><div class="stat-l">Avg. Setup</div></div>
+    <div class="stat-cell"><div class="stat-n">40+</div><div class="stat-l">Countries</div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="sec-tag reveal">⚡ How It Works</div>
+    <h2 class="sec-h reveal">Three steps to get paid</h2>
+    <p class="sec-p reveal">No dashboards to learn. Everything happens inside WhatsApp.</p>
+    <div class="steps">
+      <div class="step reveal"><div class="step-n">01</div><div class="step-t">Connect WhatsApp</div><p>Link your WhatsApp Business number in under 2 minutes.</p></div>
+      <div class="step reveal"><div class="step-n">02</div><div class="step-t">Create & Send Invoice</div><p>Chat with our bot to build your invoice. Sent directly to your client on WhatsApp.</p></div>
+      <div class="step reveal"><div class="step-n">03</div><div class="step-t">Get Paid Instantly</div><p>Clients tap Pay and money hits your account in minutes.</p></div>
+      <div class="step reveal"><div class="step-n">04</div><div class="step-t">Auto Reminders</div><p>We send polite payment reminders automatically. No awkward follow-ups.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="sec-tag reveal">✨ Features</div>
+    <h2 class="sec-h reveal">Everything you need</h2>
+    <p class="sec-p reveal">Built for freelancers, consultants, and small businesses who want to get paid faster.</p>
+    <div class="features">
+      <div class="feat reveal"><div class="feat-ic">📲</div><h3>WhatsApp-native Invoicing</h3><p>Create and send professional invoices without leaving WhatsApp. Clients pay right from the chat.</p></div>
+      <div class="feat reveal"><div class="feat-ic">💳</div><h3>Multiple Payment Methods</h3><p>Accept cards, bank transfers, M-Pesa, PayPal, and 20+ local gateways out of the box.</p></div>
+      <div class="feat reveal"><div class="feat-ic">🔔</div><h3>Smart Reminders</h3><p>Automated follow-ups sent at the right time in a friendly tone. Set once, forget it.</p></div>
+      <div class="feat reveal"><div class="feat-ic">📊</div><h3>Revenue Dashboard</h3><p>Track paid, pending, and overdue invoices. Export to CSV anytime.</p></div>
+      <div class="feat reveal"><div class="feat-ic">🌍</div><h3>Multi-currency</h3><p>Invoice clients in their local currency. Conversion is handled automatically.</p></div>
+      <div class="feat reveal"><div class="feat-ic">🔗</div><h3>API & Integrations</h3><p>Connect to QuickBooks, Xero, Zapier, and Stripe. Full REST API for custom workflows.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <div class="sec-tag reveal">💰 Pricing</div>
+    <h2 class="sec-h reveal">Simple, transparent pricing</h2>
+    <p class="sec-p reveal">Start free. No credit card required. Upgrade when you're ready.</p>
+    <div class="pricing">
+      <div class="plan reveal">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$0<sub>/mo</sub></div>
+        <div class="plan-desc">Perfect for freelancers starting out</div>
+        <ul class="plan-feats">
+          <li>5 invoices per month</li>
+          <li>1 WhatsApp number</li>
+          <li>Basic templates</li>
+          <li>WhatsApp notifications</li>
+          <li class="no">Auto reminders</li>
+          <li class="no">Multi-currency</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-o" onclick="openModal('signup');return false;">Get Started Free</a>
+      </div>
+      <div class="plan plan-pop reveal">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$29<sub>/mo</sub></div>
+        <div class="plan-desc">For growing freelancers & consultants</div>
+        <ul class="plan-feats">
+          <li>Unlimited invoices</li>
+          <li>3 WhatsApp numbers</li>
+          <li>Custom branded templates</li>
+          <li>WhatsApp notifications</li>
+          <li>Auto reminders</li>
+          <li>Multi-currency</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-g" onclick="openModal('signup');return false;">Start Free Trial →</a>
+      </div>
+      <div class="plan reveal">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">$79<sub>/mo</sub></div>
+        <div class="plan-desc">For teams and high-volume businesses</div>
+        <ul class="plan-feats">
+          <li>Unlimited invoices</li>
+          <li>Unlimited numbers</li>
+          <li>White-label branding</li>
+          <li>Priority support</li>
+          <li>Auto reminders</li>
+          <li>Full API access</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-o" onclick="openModal('signup');return false;">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="container">
+    <div class="sec-tag reveal">⭐ Testimonials</div>
+    <h2 class="sec-h reveal">Loved by freelancers worldwide</h2>
+    <div class="testi-grid">
+      <div class="testi reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q">"I used to chase clients for weeks. Now 90% pay within 24 hours of receiving the WhatsApp invoice. This changed my business."</p>
+        <div class="testi-au"><div class="testi-av">AM</div><div><div class="testi-name">Amara Mensah</div><div class="testi-role">Graphic Designer, Ghana</div></div></div>
+      </div>
+      <div class="testi reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q">"My clients are on WhatsApp all day anyway. This removes every barrier to getting paid. Setup took literally 3 minutes."</p>
+        <div class="testi-au"><div class="testi-av">RK</div><div><div class="testi-name">Rajan Kumar</div><div class="testi-role">Web Developer, India</div></div></div>
+      </div>
+      <div class="testi reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q">"The automatic reminders alone are worth the subscription. I no longer feel awkward asking for payment — the bot does it for me!"</p>
+        <div class="testi-au"><div class="testi-av">SL</div><div><div class="testi-name">Sara Löfgren</div><div class="testi-role">Consultant, Sweden</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="sec-tag reveal">❓ FAQ</div>
+    <h2 class="sec-h reveal">Common questions</h2>
+    <div class="faq-list">
+      <div class="faq-item reveal"><button class="faq-q" onclick="toggleFaq(this)">Do my clients need to download anything? <span class="arr">▾</span></button><div class="faq-a">No. Clients receive a WhatsApp message like any other. They tap Pay and complete payment via a secure web page — no app or account needed.</div></div>
+      <div class="faq-item reveal"><button class="faq-q" onclick="toggleFaq(this)">Which payment gateways are supported? <span class="arr">▾</span></button><div class="faq-a">We support Stripe, PayPal, M-Pesa, Flutterwave, Paystack, and local bank transfers in 40+ countries.</div></div>
+      <div class="faq-item reveal"><button class="faq-q" onclick="toggleFaq(this)">Is my data secure? <span class="arr">▾</span></button><div class="faq-a">Yes. All data is encrypted in transit and at rest. We use WhatsApp's official Business API and never store raw payment card data.</div></div>
+      <div class="faq-item reveal"><button class="faq-q" onclick="toggleFaq(this)">Can I customize invoice appearance? <span class="arr">▾</span></button><div class="faq-a">On Pro and Business plans, you can add your logo, brand colors, and custom footer. Business plans support full white-label branding.</div></div>
+      <div class="faq-item reveal"><button class="faq-q" onclick="toggleFaq(this)">What happens when I hit my limit? <span class="arr">▾</span></button><div class="faq-a">We notify you when you're approaching your limit and invite you to upgrade. We won't cut you off mid-month without warning.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-wrap">
+  <div class="cta-glow"></div>
+  <div class="sec-tag reveal" style="justify-content:center;">🚀 Get Started</div>
+  <h2 class="reveal">Start getting paid<br/>via WhatsApp today</h2>
+  <p class="reveal">Join thousands of freelancers who get paid faster. Free plan available — no credit card needed.</p>
+  <div class="hero-btns reveal">
+    <a href="#" class="btn-p" onclick="openModal('signup');return false;">Create Free Account →</a>
+    <a href="#" class="btn-s" onclick="openModal('signin');return false;">Sign In</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <a href="#" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.852L.057 23.5a.5.5 0 0 0 .612.612l5.648-1.475A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.869 0-3.618-.488-5.137-1.342l-.366-.213-3.795.993.993-3.794-.213-.366A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg></span>
+        Invoicebillers
+      </a>
+      <p>Invoice clients and get paid faster — all through WhatsApp.</p>
+    </div>
+    <div class="foot-col"><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#">Changelog</a><a href="#">Roadmap</a></div>
+    <div class="foot-col"><h4>Resources</h4><a href="#">Documentation</a><a href="#">API Reference</a><a href="#">Blog</a><a href="#">Status</a></div>
+    <div class="foot-col"><h4>Company</h4><a href="#">About</a><a href="#">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2025 Invoicebillers. All rights reserved.</span>
+    <span>Made with ♥ for freelancers worldwide</span>
+  </div>
+</footer>
+
+<!-- ═══════ MODAL ═══════ -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1.2rem;" onclick="if(event.target===this)closeModal()">
+  <div style="background:#0d120d;border:1px solid rgba(34,197,94,0.2);border-radius:20px;padding:2rem;max-width:440px;width:100%;position:relative;box-shadow:0 40px 80px rgba(0,0,0,0.7);max-height:92vh;overflow-y:auto;">
+    <button onclick="closeModal()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.07);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:0.9rem;">✕</button>
+
+    <!-- Tabs -->
+    <div style="display:flex;background:#131a13;border-radius:10px;padding:3px;gap:3px;margin-bottom:1.6rem;">
+      <button id="tabSignup" onclick="showTab('signup')" style="flex:1;padding:0.55rem;border:none;border-radius:8px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.83rem;background:#22c55e;color:#000;transition:all 0.2s;">📝 Sign Up</button>
+      <button id="tabSignin" onclick="showTab('signin')" style="flex:1;padding:0.55rem;border:none;border-radius:8px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.83rem;background:transparent;color:#6b7f6b;transition:all 0.2s;">🔑 Sign In</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="formSignup">
+      <div style="text-align:center;margin-bottom:1.3rem;">
+        <div style="width:44px;height:44px;background:#22c55e;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.7rem;font-size:1.2rem;">📲</div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.25rem;font-weight:800;color:#fff;margin-bottom:0.2rem;letter-spacing:-0.02em;">Create Your Account</h2>
+        <p style="color:#6b7f6b;font-size:0.8rem;">Your request will be reviewed before activation.</p>
+      </div>
+      <form onsubmit="handleSignup(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Full Name *</label><input type="text" id="sName" placeholder="John Smith" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/></div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Email Address *</label><input type="email" id="sEmail" placeholder="john@example.com" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/></div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Mobile / WhatsApp *</label><input type="tel" id="sPhone" placeholder="+91 98765 43210" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/></div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Business / Shop Name *</label><input type="text" id="sShop" placeholder="My Shop Name" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/></div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Business Type *</label>
+          <select id="sBiz" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;appearance:none;">
+            <option value="">Select type</option><option>Freelancer</option><option>Consultant</option><option>Small Business</option><option>Agency</option><option>Other</option>
+          </select>
+        </div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Password *</label>
+          <div style="position:relative;"><input type="password" id="sPass" placeholder="Min. 8 characters" required minlength="8" style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;padding-right:2.8rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/><span onclick="togglePwd('sPass',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#6b7f6b;font-size:0.8rem;">👁</span></div>
+        </div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Confirm Password *</label>
+          <div style="position:relative;"><input type="password" id="sPass2" placeholder="Re-enter password" required minlength="8" style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;padding-right:2.8rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/><span onclick="togglePwd('sPass2',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#6b7f6b;font-size:0.8rem;">👁</span></div>
+        </div>
+        <div id="signupError" style="color:#f87171;font-size:0.78rem;display:none;"></div>
+        <button type="submit" id="signupBtn" style="background:#22c55e;color:#000;border:none;padding:0.82rem;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer;margin-top:0.2rem;font-family:'Plus Jakarta Sans',sans-serif;">🚀 Submit My Request</button>
+      </form>
+      <p style="text-align:center;color:#6b7f6b;font-size:0.7rem;margin-top:0.85rem;">By signing up you agree to our <a href="#" style="color:#22c55e;">Terms</a> &amp; <a href="#" style="color:#22c55e;">Privacy Policy</a></p>
+    </div>
+
+    <!-- SIGNIN -->
+    <div id="formSignin" style="display:none;">
+      <div style="text-align:center;margin-bottom:1.3rem;">
+        <div style="width:44px;height:44px;background:#22c55e;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.7rem;font-size:1.2rem;">🔑</div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.25rem;font-weight:800;color:#fff;margin-bottom:0.2rem;letter-spacing:-0.02em;">Welcome Back</h2>
+        <p style="color:#6b7f6b;font-size:0.8rem;">Sign in to your billing dashboard.</p>
+      </div>
+      <form onsubmit="handleSignin(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Email or Mobile Number *</label><input type="text" id="liUser" placeholder="email@example.com or +1234567890" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/></div>
+        <div><label style="font-size:0.72rem;color:#6b7f6b;display:block;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Password *</label>
+          <div style="position:relative;"><input type="password" id="liPass" placeholder="Your password" required style="width:100%;background:#131a13;border:1px solid rgba(34,197,94,0.12);border-radius:9px;padding:0.68rem 0.9rem;padding-right:2.8rem;color:#e2ebe2;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='rgba(34,197,94,0.45)'" onblur="this.style.borderColor='rgba(34,197,94,0.12)'"/><span onclick="togglePwd('liPass',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#6b7f6b;font-size:0.8rem;">👁</span></div>
+        </div>
+        <div id="signinError" style="color:#f87171;font-size:0.78rem;display:none;"></div>
+        <button type="submit" id="signinBtn" style="background:#22c55e;color:#000;border:none;padding:0.82rem;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer;margin-top:0.2rem;font-family:'Plus Jakarta Sans',sans-serif;">🔑 Sign In to Dashboard</button>
+      </form>
+      <p style="text-align:center;color:#6b7f6b;font-size:0.8rem;margin-top:0.9rem;">No account? <a href="#" onclick="showTab('signup');return false;" style="color:#22c55e;">Request access →</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:0.75rem 1.6rem;border-radius:10px;font-weight:600;font-size:0.85rem;z-index:3000;box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // 🔧 PASTE YOUR FIREBASE CONFIG BELOW
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  window.handleSignup = async function(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('signupError'); errEl.style.display='none';
+    const name=document.getElementById('sName').value.trim();
+    const email=document.getElementById('sEmail').value.trim().toLowerCase();
+    const phone=document.getElementById('sPhone').value.trim();
+    const shop=document.getElementById('sShop').value.trim();
+    const biz=document.getElementById('sBiz').value;
+    const pass=document.getElementById('sPass').value;
+    const pass2=document.getElementById('sPass2').value;
+    if(pass!==pass2){errEl.textContent='❌ Passwords do not match.';errEl.style.display='block';return;}
+    const btn=document.getElementById('signupBtn');
+    btn.textContent='⏳ Submitting...';btn.disabled=true;
+    try {
+      const existing=await getDocs(query(collection(db,'requests'),where('email','==',email)));
+      if(!existing.empty){errEl.textContent='⚠️ This email already has a request.';errEl.style.display='block';btn.textContent='🚀 Submit My Request';btn.disabled=false;return;}
+      await addDoc(collection(db,'requests'),{name,email,phone,shop,biz,password:btoa(pass),status:'pending',createdAt:serverTimestamp()});
+      closeModal(); showToast('✅ Request submitted! We\'ll notify you once approved.','#22c55e','#000'); e.target.reset();
+    } catch(err){errEl.textContent='❌ '+err.message;errEl.style.display='block';}
+    btn.textContent='🚀 Submit My Request';btn.disabled=false;
+  };
+
+  window.handleSignin = async function(e) {
+    e.preventDefault();
+    const errEl=document.getElementById('signinError');errEl.style.display='none';
+    const userInput=document.getElementById('liUser').value.trim().toLowerCase();
+    const pass=document.getElementById('liPass').value;
+    const btn=document.getElementById('signinBtn');
+    btn.textContent='⏳ Signing in...';btn.disabled=true;
+    try {
+      let snap=await getDocs(query(collection(db,'requests'),where('email','==',userInput)));
+      if(snap.empty) snap=await getDocs(query(collection(db,'requests'),where('phone','==',userInput)));
+      if(snap.empty){errEl.textContent='❌ No account found with that email or phone.';errEl.style.display='block';btn.textContent='🔑 Sign In to Dashboard';btn.disabled=false;return;}
+      const userData=snap.docs[0].data(); const docId=snap.docs[0].id;
+      if(userData.status==='pending'){errEl.textContent='⏳ Your account is pending admin approval.';errEl.style.display='block';btn.textContent='🔑 Sign In to Dashboard';btn.disabled=false;return;}
+      if(userData.status==='rejected'){errEl.textContent='❌ Your request was not approved. Contact support.';errEl.style.display='block';btn.textContent='🔑 Sign In to Dashboard';btn.disabled=false;return;}
+      if(btoa(pass)!==userData.password){errEl.textContent='❌ Incorrect password.';errEl.style.display='block';btn.textContent='🔑 Sign In to Dashboard';btn.disabled=false;return;}
+      sessionStorage.setItem('ib_user',JSON.stringify({id:docId,...userData}));
+      showToast('✅ Welcome back! Redirecting...','#22c55e','#000');
+      setTimeout(()=>{window.location.href='dashboard.html';},1200);
+    } catch(err){errEl.textContent='❌ '+err.message;errEl.style.display='block';btn.textContent='🔑 Sign In to Dashboard';btn.disabled=false;}
+  };
+</script>
+
+<script>
+  function openModal(tab){document.getElementById('modalOverlay').style.display='flex';document.body.style.overflow='hidden';showTab(tab||'signup');}
+  function closeModal(){document.getElementById('modalOverlay').style.display='none';document.body.style.overflow='';}
+  function showTab(tab){
+    const su=tab==='signup';
+    document.getElementById('formSignup').style.display=su?'block':'none';
+    document.getElementById('formSignin').style.display=su?'none':'block';
+    document.getElementById('tabSignup').style.background=su?'#22c55e':'transparent';
+    document.getElementById('tabSignup').style.color=su?'#000':'#6b7f6b';
+    document.getElementById('tabSignin').style.background=su?'transparent':'#22c55e';
+    document.getElementById('tabSignin').style.color=su?'#6b7f6b':'#000';
+  }
+  function togglePwd(id,el){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';el.textContent=i.type==='password'?'👁':'🙈';}
+  function showToast(msg,bg,color){const t=document.getElementById('toast');t.textContent=msg;t.style.background=bg;t.style.color=color;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+  function toggleFaq(btn){const item=btn.closest('.faq-item');const isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open');}
+  window.openModal=openModal;window.closeModal=closeModal;window.showTab=showTab;window.togglePwd=togglePwd;window.showToast=showToast;window.toggleFaq=toggleFaq;
+  // Scroll reveal
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+</script>
+</body>
+</html>
