@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoicebillers – Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --green:#25D366;--black:#0a0a0a;--surface:#111413;--surface2:#1a1e1c;
+      --border:rgba(37,211,102,0.15);--text:#e8ede9;--muted:#7a8c7e;
+      --red:#ff4d4d;--yellow:#f5a623;
+      --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+    }
+    body{background:var(--black);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+
+    /* LOGIN SCREEN */
+    #loginScreen{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;
+      background:radial-gradient(ellipse at 50% 40%, rgba(37,211,102,0.07) 0%, transparent 60%);
+    }
+    .login-box{
+      background:var(--surface);border:1px solid var(--border);border-radius:24px;
+      padding:2.5rem;max-width:400px;width:100%;
+      box-shadow:0 40px 80px rgba(0,0,0,0.6);
+    }
+    .login-box h1{font-family:var(--font-head);font-size:1.6rem;font-weight:800;margin-bottom:0.3rem;}
+    .login-box p{color:var(--muted);font-size:0.85rem;margin-bottom:1.8rem;}
+    .field{margin-bottom:1rem;}
+    .field label{font-size:0.78rem;color:var(--muted);display:block;margin-bottom:0.35rem;}
+    .field input{
+      width:100%;background:var(--surface2);border:1px solid var(--border);
+      border-radius:10px;padding:0.75rem 1rem;color:var(--text);
+      font-family:var(--font-body);font-size:0.88rem;outline:none;
+    }
+    .field input:focus{border-color:rgba(37,211,102,0.5);}
+    .btn-green{
+      width:100%;background:var(--green);color:#0a0a0a;border:none;
+      padding:0.85rem;border-radius:100px;font-weight:700;font-size:0.92rem;
+      cursor:pointer;font-family:var(--font-body);
+    }
+    #loginErr{color:#ff6b6b;font-size:0.8rem;margin-bottom:0.8rem;display:none;}
+
+    /* ADMIN APP */
+    #adminApp{display:none;}
+
+    /* SIDEBAR */
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{
+      width:240px;background:var(--surface);border-right:1px solid var(--border);
+      padding:1.5rem 1rem;display:flex;flex-direction:column;gap:0.5rem;
+      position:fixed;top:0;bottom:0;left:0;overflow-y:auto;
+    }
+    .sidebar-logo{
+      font-family:var(--font-head);font-weight:800;font-size:1.1rem;
+      color:#fff;padding:0.5rem 0.8rem;margin-bottom:1rem;
+      display:flex;align-items:center;gap:0.5rem;
+    }
+    .sidebar-logo span{
+      width:28px;height:28px;background:var(--green);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:0.8rem;
+    }
+    .nav-item{
+      display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.8rem;
+      border-radius:10px;cursor:pointer;font-size:0.88rem;font-weight:500;
+      color:var(--muted);transition:all 0.2s;border:none;background:none;width:100%;text-align:left;
+    }
+    .nav-item:hover,.nav-item.active{background:rgba(37,211,102,0.1);color:var(--green);}
+    .nav-item .badge{
+      margin-left:auto;background:var(--green);color:#0a0a0a;
+      font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:100px;
+    }
+    .sidebar-bottom{margin-top:auto;}
+    .logout-btn{
+      display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.8rem;
+      border-radius:10px;cursor:pointer;font-size:0.88rem;font-weight:500;
+      color:var(--red);border:none;background:none;width:100%;
+    }
+    .logout-btn:hover{background:rgba(255,77,77,0.1);}
+
+    /* MAIN */
+    .main{margin-left:240px;flex:1;padding:2rem;}
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* HEADER */
+    .page-header{margin-bottom:2rem;}
+    .page-header h2{font-family:var(--font-head);font-size:1.6rem;font-weight:800;}
+    .page-header p{color:var(--muted);font-size:0.88rem;margin-top:0.3rem;}
+
+    /* STAT CARDS */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;
+    }
+    .stat-card .num{font-family:var(--font-head);font-size:2rem;font-weight:800;}
+    .stat-card .num.green{color:var(--green);}
+    .stat-card .num.yellow{color:var(--yellow);}
+    .stat-card .num.red{color:var(--red);}
+    .stat-card .lbl{color:var(--muted);font-size:0.82rem;margin-top:0.2rem;}
+
+    /* FILTERS */
+    .filters{display:flex;gap:0.7rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+    .filter-btn{
+      padding:0.45rem 1rem;border-radius:100px;border:1px solid var(--border);
+      background:transparent;color:var(--muted);cursor:pointer;font-size:0.82rem;
+      font-family:var(--font-body);transition:all 0.2s;
+    }
+    .filter-btn.active,.filter-btn:hover{background:var(--green);color:#0a0a0a;border-color:var(--green);}
+
+    /* REQUESTS TABLE */
+    .requests-list{display:flex;flex-direction:column;gap:1rem;}
+    .request-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:16px;
+      padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;
+    }
+    .req-avatar{
+      width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#128C7E,#25D366);
+      display:flex;align-items:center;justify-content:center;font-weight:700;
+      color:#0a0a0a;font-size:1rem;flex-shrink:0;
+    }
+    .req-info{flex:1;min-width:180px;}
+    .req-info .req-name{font-weight:600;font-size:0.95rem;color:#fff;}
+    .req-info .req-meta{color:var(--muted);font-size:0.8rem;margin-top:0.15rem;}
+    .req-shop{
+      background:rgba(37,211,102,0.08);border:1px solid var(--border);
+      border-radius:8px;padding:0.3rem 0.7rem;font-size:0.78rem;color:var(--green);
+      white-space:nowrap;
+    }
+    .status-badge{
+      padding:0.3rem 0.8rem;border-radius:100px;font-size:0.75rem;font-weight:600;
+    }
+    .status-pending{background:rgba(245,166,35,0.15);color:var(--yellow);}
+    .status-approved{background:rgba(37,211,102,0.15);color:var(--green);}
+    .status-rejected{background:rgba(255,77,77,0.15);color:var(--red);}
+    .req-date{color:var(--muted);font-size:0.75rem;white-space:nowrap;}
+    .req-actions{display:flex;gap:0.5rem;}
+    .btn-approve{
+      background:var(--green);color:#0a0a0a;border:none;
+      padding:0.45rem 1rem;border-radius:8px;cursor:pointer;
+      font-family:var(--font-body);font-weight:600;font-size:0.8rem;
+    }
+    .btn-reject{
+      background:rgba(255,77,77,0.12);color:var(--red);border:1px solid rgba(255,77,77,0.2);
+      padding:0.45rem 1rem;border-radius:8px;cursor:pointer;
+      font-family:var(--font-body);font-weight:600;font-size:0.8rem;
+    }
+    .btn-delete{
+      background:rgba(255,77,77,0.08);color:var(--red);border:1px solid rgba(255,77,77,0.15);
+      padding:0.45rem 0.7rem;border-radius:8px;cursor:pointer;font-size:0.85rem;
+    }
+    .empty-state{
+      text-align:center;padding:4rem;color:var(--muted);
+    }
+    .empty-state .icon{font-size:3rem;margin-bottom:1rem;}
+    .loading{text-align:center;padding:3rem;color:var(--muted);}
+
+    /* TOAST */
+    #adminToast{
+      display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+      padding:0.8rem 1.8rem;border-radius:100px;font-weight:600;font-size:0.88rem;
+      z-index:3000;white-space:nowrap;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .sidebar{width:200px;}
+      .main{margin-left:200px;padding:1rem;}
+    }
+    @media(max-width:600px){
+      .sidebar{display:none;}
+      .main{margin-left:0;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div style="width:48px;height:48px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:1rem;">🛡️</div>
+    <h1>Admin Login</h1>
+    <p>Invoicebillers Admin Panel — restricted access only.</p>
+    <div id="loginErr"></div>
+    <form onsubmit="adminLogin(event)">
+      <div class="field">
+        <label>Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@invoicebillers.com" required/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="adminPass" placeholder="Admin password" required/>
+      </div>
+      <button type="submit" class="btn-green">🔐 Login to Admin Panel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ ADMIN APP ═══ -->
+<div id="adminApp">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>⚡</span> Admin
+      </div>
+      <button class="nav-item active" onclick="showPage('requests',this)">
+        📋 All Requests <span class="badge" id="pendingBadge">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('approved',this)">
+        ✅ Approved
+      </button>
+      <button class="nav-item" onclick="showPage('rejected',this)">
+        ❌ Rejected
+      </button>
+      <div class="sidebar-bottom">
+        <button class="logout-btn" onclick="adminLogout()">🚪 Logout</button>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <!-- REQUESTS PAGE -->
+      <div id="page-requests" class="page active">
+        <div class="page-header">
+          <h2>Account Requests</h2>
+          <p>Review and approve or reject new customer account requests.</p>
+        </div>
+        <div class="stats" id="statsRow">
+          <div class="stat-card"><div class="num yellow" id="statPending">—</div><div class="lbl">⏳ Pending</div></div>
+          <div class="stat-card"><div class="num green" id="statApproved">—</div><div class="lbl">✅ Approved</div></div>
+          <div class="stat-card"><div class="num red" id="statRejected">—</div><div class="lbl">❌ Rejected</div></div>
+          <div class="stat-card"><div class="num" id="statTotal">—</div><div class="lbl">📊 Total</div></div>
+        </div>
+        <div class="filters">
+          <button class="filter-btn active" onclick="filterRequests('all',this)">All</button>
+          <button class="filter-btn" onclick="filterRequests('pending',this)">⏳ Pending</button>
+          <button class="filter-btn" onclick="filterRequests('approved',this)">✅ Approved</button>
+          <button class="filter-btn" onclick="filterRequests('rejected',this)">❌ Rejected</button>
+        </div>
+        <div id="requestsList" class="requests-list">
+          <div class="loading">⏳ Loading requests...</div>
+        </div>
+      </div>
+
+      <!-- APPROVED PAGE -->
+      <div id="page-approved" class="page">
+        <div class="page-header">
+          <h2>Approved Accounts</h2>
+          <p>All customers with active billing dashboard access.</p>
+        </div>
+        <div id="approvedList" class="requests-list">
+          <div class="loading">⏳ Loading...</div>
+        </div>
+      </div>
+
+      <!-- REJECTED PAGE -->
+      <div id="page-rejected" class="page">
+        <div class="page-header">
+          <h2>Rejected Requests</h2>
+          <p>Requests that were not approved.</p>
+        </div>
+        <div id="rejectedList" class="requests-list">
+          <div class="loading">⏳ Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="adminToast"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, orderBy, query }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ══════════════════════════════════════
+  // 🔧 PASTE YOUR FIREBASE CONFIG BELOW
+  // ══════════════════════════════════════
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  // ══════════════════════════════════════
+  // 🔑 SET YOUR ADMIN CREDENTIALS BELOW
+  // ══════════════════════════════════════
+  const ADMIN_EMAIL = "admin@invoicebillers.com";
+  const ADMIN_PASS  = "Admin@1234";
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  let allRequests = [];
+
+  // ── ADMIN LOGIN ──
+  window.adminLogin = function(e) {
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value.trim();
+    const pass  = document.getElementById('adminPass').value;
+    const err   = document.getElementById('loginErr');
+
+    if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+      sessionStorage.setItem('ib_admin', '1');
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'block';
+      loadRequests();
+    } else {
+      err.textContent = '❌ Invalid admin credentials.';
+      err.style.display = 'block';
+    }
+  };
+
+  window.adminLogout = function() {
+    sessionStorage.removeItem('ib_admin');
+    location.reload();
+  };
+
+  // ── LOAD ALL REQUESTS ──
+  async function loadRequests() {
+    try {
+      const q = query(collection(db, 'requests'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      updateStats();
+      renderList('all');
+      renderApprovedPage();
+      renderRejectedPage();
+    } catch(err) {
+      document.getElementById('requestsList').innerHTML =
+        `<div class="empty-state"><div class="icon">❌</div><p>Error loading: ${err.message}</p></div>`;
+    }
+  }
+
+  function updateStats() {
+    const pending  = allRequests.filter(r => r.status === 'pending').length;
+    const approved = allRequests.filter(r => r.status === 'approved').length;
+    const rejected = allRequests.filter(r => r.status === 'rejected').length;
+    document.getElementById('statPending').textContent  = pending;
+    document.getElementById('statApproved').textContent = approved;
+    document.getElementById('statRejected').textContent = rejected;
+    document.getElementById('statTotal').textContent    = allRequests.length;
+    document.getElementById('pendingBadge').textContent = pending;
+  }
+
+  window.filterRequests = function(status, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderList(status);
+  };
+
+  function renderList(status) {
+    const filtered = status === 'all' ? allRequests : allRequests.filter(r => r.status === status);
+    const el = document.getElementById('requestsList');
+    if (!filtered.length) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No ${status === 'all' ? '' : status} requests found.</p></div>`;
+      return;
+    }
+    el.innerHTML = filtered.map(r => requestCard(r)).join('');
+  }
+
+  function renderApprovedPage() {
+    const filtered = allRequests.filter(r => r.status === 'approved');
+    const el = document.getElementById('approvedList');
+    if (!filtered.length) { el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No approved accounts yet.</p></div>`; return; }
+    el.innerHTML = filtered.map(r => requestCard(r, false)).join('');
+  }
+
+  function renderRejectedPage() {
+    const filtered = allRequests.filter(r => r.status === 'rejected');
+    const el = document.getElementById('rejectedList');
+    if (!filtered.length) { el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No rejected requests.</p></div>`; return; }
+    el.innerHTML = filtered.map(r => requestCard(r, false)).join('');
+  }
+
+  function requestCard(r, showActions = true) {
+    const initials = r.name ? r.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) : '??';
+    const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}) : 'N/A';
+    const statusClass = { pending:'status-pending', approved:'status-approved', rejected:'status-rejected' }[r.status] || '';
+
+    let actions = '';
+    if (showActions) {
+      if (r.status === 'pending') {
+        actions = `
+          <button class="btn-approve" onclick="approveReq('${r.id}')">✅ Approve</button>
+          <button class="btn-reject"  onclick="rejectReq('${r.id}')">❌ Reject</button>`;
+      } else if (r.status === 'approved') {
+        actions = `<button class="btn-reject" onclick="rejectReq('${r.id}')">❌ Revoke</button>`;
+      } else {
+        actions = `<button class="btn-approve" onclick="approveReq('${r.id}')">✅ Approve</button>`;
+      }
+      actions += `<button class="btn-delete" onclick="deleteReq('${r.id}')" title="Delete permanently">🗑</button>`;
+    }
+
+    return `
+    <div class="request-card" id="card-${r.id}">
+      <div class="req-avatar">${initials}</div>
+      <div class="req-info">
+        <div class="req-name">${r.name || '—'}</div>
+        <div class="req-meta">📧 ${r.email || '—'} &nbsp;|&nbsp; 📱 ${r.phone || '—'} &nbsp;|&nbsp; 💼 ${r.biz || '—'}</div>
+      </div>
+      <div class="req-shop">🏪 ${r.shop || '—'}</div>
+      <span class="status-badge ${statusClass}">${r.status}</span>
+      <div class="req-date">${date}</div>
+      <div class="req-actions">${actions}</div>
+    </div>`;
+  }
+
+  window.approveReq = async function(id) {
+    try {
+      await updateDoc(doc(db, 'requests', id), { status: 'approved' });
+      const req = allRequests.find(r => r.id === id);
+      if (req) req.status = 'approved';
+      updateStats();
+      renderList(document.querySelector('.filter-btn.active').textContent.trim().toLowerCase().replace(/[^a-z]/g,'') || 'all');
+      renderApprovedPage(); renderRejectedPage();
+      showAdminToast('✅ Account approved! Customer can now sign in.', '#25D366', '#0a0a0a');
+    } catch(e) { showAdminToast('❌ Error: ' + e.message, '#ff4d4d', '#fff'); }
+  };
+
+  window.rejectReq = async function(id) {
+    if (!confirm('Are you sure you want to reject/revoke this request?')) return;
+    try {
+      await updateDoc(doc(db, 'requests', id), { status: 'rejected' });
+      const req = allRequests.find(r => r.id === id);
+      if (req) req.status = 'rejected';
+      updateStats();
+      renderList(document.querySelector('.filter-btn.active').textContent.trim().toLowerCase().replace(/[^a-z]/g,'') || 'all');
+      renderApprovedPage(); renderRejectedPage();
+      showAdminToast('🚫 Request rejected.', '#f5a623', '#0a0a0a');
+    } catch(e) { showAdminToast('❌ Error: ' + e.message, '#ff4d4d', '#fff'); }
+  };
+
+  window.deleteReq = async function(id) {
+    if (!confirm('Permanently delete this request? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db, 'requests', id));
+      allRequests = allRequests.filter(r => r.id !== id);
+      updateStats();
+      renderList(document.querySelector('.filter-btn.active').textContent.trim().toLowerCase().replace(/[^a-z]/g,'') || 'all');
+      renderApprovedPage(); renderRejectedPage();
+      showAdminToast('🗑 Request deleted permanently.', '#ff4d4d', '#fff');
+    } catch(e) { showAdminToast('❌ Error: ' + e.message, '#ff4d4d', '#fff'); }
+  };
+
+  function showAdminToast(msg, bg, color) {
+    const t = document.getElementById('adminToast');
+    t.textContent = msg; t.style.background = bg; t.style.color = color;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 4000);
+  }
+  window.showAdminToast = showAdminToast;
+
+  // Auto-login if session exists
+  if (sessionStorage.getItem('ib_admin')) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    loadRequests();
+  }
+</script>
+
+<script>
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
