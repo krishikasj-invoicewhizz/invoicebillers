@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoicebillers – SaaS Invoicing via WhatsApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #25D366;
+      --green-dark: #128C7E;
+      --green-light: #DCF8C6;
+      --black: #0a0a0a;
+      --surface: #111413;
+      --surface2: #1a1e1c;
+      --border: rgba(37,211,102,0.15);
+      --text: #e8ede9;
+      --muted: #7a8c7e;
+      --white: #ffffff;
+      --accent: #00FF88;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg { width: 18px; height: 18px; fill: white; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-cta {
+      background: var(--green);
+      color: var(--black) !important;
+      padding: 0.55rem 1.4rem;
+      border-radius: 100px;
+      font-weight: 600 !important;
+      transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(37,211,102,0.35);
+      color: var(--black) !important;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(ellipse, rgba(37,211,102,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(37,211,102,0.1);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      color: var(--green);
+      font-weight: 500;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .badge-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    h1 {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--green);
+      position: relative;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: var(--black);
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(37,211,102,0.4);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green);
+      background: rgba(37,211,102,0.05);
+      color: var(--white);
+    }
+
+    /* ─── CHAT MOCKUP ─── */
+    .hero-mockup {
+      margin-top: 5rem;
+      max-width: 420px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(37,211,102,0.08);
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .chat-header {
+      background: var(--surface2);
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chat-avatar {
+      width: 38px; height: 38px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .chat-name { font-weight: 600; font-size: 0.9rem; }
+    .chat-status { font-size: 0.72rem; color: var(--green); }
+
+    .chat-body {
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 0.6rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      animation: msgIn 0.3s ease both;
+    }
+
+    .msg-in {
+      background: var(--surface2);
+      align-self: flex-start;
+      border-bottom-left-radius: 3px;
+    }
+
+    .msg-out {
+      background: #1f4d2e;
+      align-self: flex-end;
+      border-bottom-right-radius: 3px;
+    }
+
+    .msg-invoice {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.8rem 1rem;
+      font-size: 0.8rem;
+      align-self: flex-start;
+    }
+
+    .msg-invoice-title {
+      font-weight: 700;
+      font-family: var(--font-head);
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--white);
+    }
+
+    .msg-invoice-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .msg-invoice-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      color: var(--green);
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .pay-btn {
+      width: 100%;
+      background: var(--green);
+      color: var(--black);
+      border: none;
+      padding: 0.55rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 0.7rem;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ─── SECTION ─── */
+    section { padding: 6rem 2rem; }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 0.8rem;
+    }
+
+    .section-title {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      max-width: 480px;
+      font-size: 1rem;
+      font-weight: 300;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 4rem;
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .step:hover {
+      border-color: rgba(37,211,102,0.4);
+      transform: translateY(-4px);
+    }
+
+    .step-num {
+      font-family: var(--font-head);
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: rgba(37,211,102,0.12);
+      line-height: 1;
+      margin-bottom: 0.8rem;
+    }
+
+    .step-title {
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--white);
+    }
+
+    .step p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ─── FEATURES ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(37,211,102,0.35);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: rgba(37,211,102,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--white);
+    }
+
+    .feature-card p { color: var(--muted); font-size: 0.88rem; }
+
+    /* ─── PRICING ─── */
+    #pricing { background: var(--surface); }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .plan {
+      background: var(--black);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      position: relative;
+      transition: transform 0.3s;
+    }
+
+    .plan:hover { transform: translateY(-4px); }
+
+    .plan-popular {
+      border-color: var(--green);
+      box-shadow: 0 0 40px rgba(37,211,102,0.1);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--green);
+      color: var(--black);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.9rem;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .plan-name {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .plan-price {
+      font-family: var(--font-head);
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .plan-desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .plan-features li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      color: var(--text);
+    }
+
+    .plan-features li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .plan-features li.no::before { content: '×'; color: var(--muted); }
+    .plan-features li.no { color: var(--muted); }
+
+    .plan-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 0.8rem;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .plan-btn-primary { background: var(--green); color: var(--black); }
+    .plan-btn-primary:hover { box-shadow: 0 8px 30px rgba(37,211,102,0.3); transform: translateY(-1px); }
+    .plan-btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .plan-btn-secondary:hover { border-color: var(--green); color: var(--white); }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .testimonial {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem;
+    }
+
+    .testimonial-stars { color: var(--green); font-size: 0.85rem; margin-bottom: 0.8rem; letter-spacing: 0.1em; }
+    .testimonial-text { color: var(--text); font-size: 0.9rem; font-style: italic; margin-bottom: 1.2rem; }
+    .testimonial-author { display: flex; align-items: center; gap: 0.8rem; }
+
+    .author-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--black);
+    }
+
+    .author-name { font-weight: 600; font-size: 0.85rem; color: var(--white); }
+    .author-role { font-size: 0.75rem; color: var(--muted); }
+
+    /* ─── FAQ ─── */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 3rem;
+      max-width: 700px;
+    }
+
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .faq-q {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 1.2rem 1.5rem;
+      text-align: left;
+      color: var(--white);
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .faq-q .arrow {
+      width: 22px; height: 22px;
+      background: rgba(37,211,102,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--green);
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+
+    .faq-item.open .arrow { transform: rotate(180deg); }
+
+    .faq-a {
+      display: none;
+      padding: 0 1.5rem 1.2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .faq-item.open .faq-a { display: block; }
+
+    /* ─── CTA SECTION ─── */
+    .cta-section {
+      text-align: center;
+      padding: 6rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-glow {
+      position: absolute;
+      width: 500px; height: 400px;
+      background: radial-gradient(ellipse, rgba(37,211,102,0.1) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-family: var(--font-head);
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0 auto 2.5rem;
+      font-weight: 300;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3rem;
+      justify-content: space-between;
+    }
+
+    .footer-brand p { color: var(--muted); font-size: 0.85rem; max-width: 220px; margin-top: 0.8rem; }
+
+    .footer-col h4 {
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .footer-col a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .footer-col a:hover { color: var(--green); }
+
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 2rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* ─── STATS ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 5rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--font-head);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .stat-label { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .nav-links.open { display: flex; flex-direction: column; position: fixed; inset: 0; top: 60px; background: var(--black); padding: 2rem; gap: 1.5rem; }
+      .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; }
+      .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; }
+    }
+
+    @media (min-width: 769px) { .hamburger { display: none; } }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ─── SCROLL ANIMATION ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <span class="logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.852L.057 23.5a.5.5 0 0 0 .612.612l5.648-1.475A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.869 0-3.618-.488-5.137-1.342l-.366-.213-3.795.993.993-3.794-.213-.366A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    </span>
+    Invoicebillers
+  </a>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How it Works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#" class="nav-cta">Start Free →</a></li>
+  </ul>
+
+  <div class="hamburger" id="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Now live — send invoices in seconds
+  </div>
+
+  <h1>Invoice Clients<br />Right From <em>WhatsApp</em></h1>
+
+  <p class="hero-sub">Create, send, and get paid on professional invoices — all inside WhatsApp. No app downloads required for your clients.</p>
+
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">
+      🚀 Get Started Free
+    </a>
+    <a href="#how-it-works" class="btn-secondary">
+      ▶ See How It Works
+    </a>
+  </div>
+
+  <!-- Chat Mockup -->
+  <div class="hero-mockup" style="animation-delay:0.5s">
+    <div class="chat-header">
+      <div class="chat-avatar">💼</div>
+      <div>
+        <div class="chat-name">Invoicebillers Bot</div>
+        <div class="chat-status">● Online</div>
+      </div>
+    </div>
+    <div class="chat-body">
+      <div class="msg msg-in">Hi! Type <strong>/invoice</strong> to create a new invoice 📋</div>
+      <div class="msg msg-out">/invoice new</div>
+      <div class="msg msg-in">Great! What's the client's name?</div>
+      <div class="msg msg-out">John Smith — john@example.com</div>
+      <div class="msg msg-in">Adding items... Done! Here's your invoice:</div>
+      <div class="msg-invoice">
+        <div class="msg-invoice-title">📄 Invoice #INV-0042</div>
+        <div class="msg-invoice-row"><span>Web Design</span><span>$800</span></div>
+        <div class="msg-invoice-row"><span>SEO Setup</span><span>$200</span></div>
+        <div class="msg-invoice-total"><span>Total</span><span>$1,000</span></div>
+        <button class="pay-btn">💳 Pay Now</button>
+      </div>
+      <div class="msg msg-out">Send it!</div>
+      <div class="msg msg-in">✅ Invoice sent to John. You'll be notified when paid.</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row container reveal">
+    <div class="stat"><div class="stat-num">12k+</div><div class="stat-label">Invoices Sent</div></div>
+    <div class="stat"><div class="stat-num">98%</div><div class="stat-label">Payment Rate</div></div>
+    <div class="stat"><div class="stat-num">3min</div><div class="stat-label">Avg. Setup Time</div></div>
+    <div class="stat"><div class="stat-num">40+</div><div class="stat-label">Countries</div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="section-label reveal">How It Works</div>
+    <h2 class="section-title reveal">Three steps to getting paid</h2>
+    <p class="section-sub reveal">No complicated dashboards. Everything happens in the WhatsApp conversation you already know.</p>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Connect Your WhatsApp</div>
+        <p>Link your WhatsApp Business number in under 2 minutes. No technical setup needed.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Create & Send Invoice</div>
+        <p>Chat with our bot to build your invoice. It's sent directly to your client via WhatsApp.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Get Paid Instantly</div>
+        <p>Clients tap the Pay button and pay securely. Money hits your account in minutes.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Auto Follow-ups</div>
+        <p>We send polite payment reminders automatically so you never have to chase clients.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-label reveal">Features</div>
+    <h2 class="section-title reveal">Everything you need, nothing you don't</h2>
+    <p class="section-sub reveal">Designed for freelancers, consultants, and small businesses who want to get paid faster.</p>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📲</div>
+        <h3>WhatsApp-native Invoicing</h3>
+        <p>Create and send professional invoices without ever leaving WhatsApp. Clients pay directly from the chat.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">💳</div>
+        <h3>Multiple Payment Methods</h3>
+        <p>Accept credit cards, bank transfers, M-Pesa, PayPal, and local payment gateways out of the box.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔔</div>
+        <h3>Smart Reminders</h3>
+        <p>Automated follow-up messages sent at the right time, in a friendly tone. Set it once, forget it.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📊</div>
+        <h3>Revenue Dashboard</h3>
+        <p>Track paid, pending, and overdue invoices from a simple web dashboard. Export to CSV anytime.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌍</div>
+        <h3>Multi-currency Support</h3>
+        <p>Invoice clients in their local currency. We handle conversion and display automatically.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔗</div>
+        <h3>API & Integrations</h3>
+        <p>Connect to QuickBooks, Xero, Zapier, and Stripe. Full REST API for custom workflows.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <div class="section-label reveal">Pricing</div>
+    <h2 class="section-title reveal">Simple, transparent pricing</h2>
+    <p class="section-sub reveal">Start free. No credit card required. Upgrade when you're ready.</p>
+
+    <div class="pricing-grid">
+      <!-- FREE -->
+      <div class="plan reveal">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-desc">Perfect for freelancers getting started</div>
+        <ul class="plan-features">
+          <li>5 invoices per month</li>
+          <li>1 WhatsApp number</li>
+          <li>Basic invoice templates</li>
+          <li>WhatsApp notifications</li>
+          <li class="no">Automatic reminders</li>
+          <li class="no">Multi-currency</li>
+          <li class="no">API access</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-secondary">Get Started Free</a>
+      </div>
+
+      <!-- PRO -->
+      <div class="plan plan-popular reveal">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$29<span>/mo</span></div>
+        <div class="plan-desc">For growing freelancers and consultants</div>
+        <ul class="plan-features">
+          <li>Unlimited invoices</li>
+          <li>3 WhatsApp numbers</li>
+          <li>Custom branded templates</li>
+          <li>WhatsApp notifications</li>
+          <li>Automatic reminders</li>
+          <li>Multi-currency</li>
+          <li class="no">API access</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-primary">Start Pro Trial →</a>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="plan reveal">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">$79<span>/mo</span></div>
+        <div class="plan-desc">For teams and high-volume businesses</div>
+        <ul class="plan-features">
+          <li>Unlimited invoices</li>
+          <li>Unlimited WhatsApp numbers</li>
+          <li>White-label branding</li>
+          <li>Priority support</li>
+          <li>Automatic reminders</li>
+          <li>Multi-currency</li>
+          <li>Full API access</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-secondary">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="container">
+    <div class="section-label reveal">Testimonials</div>
+    <h2 class="section-title reveal">Loved by freelancers worldwide</h2>
+
+    <div class="testimonials-grid">
+      <div class="testimonial reveal">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"I used to chase clients for weeks. Now 90% pay within 24 hours of receiving the WhatsApp invoice. This changed my business."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">AM</div>
+          <div>
+            <div class="author-name">Amara Mensah</div>
+            <div class="author-role">Graphic Designer, Ghana</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial reveal">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"My clients are on WhatsApp all day anyway. This removes every barrier to getting paid. Setup literally took 3 minutes."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">RK</div>
+          <div>
+            <div class="author-name">Rajan Kumar</div>
+            <div class="author-role">Web Developer, India</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial reveal">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"The automatic reminders alone are worth the subscription. I no longer feel awkward asking for payment — the bot does it for me!"</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SL</div>
+          <div>
+            <div class="author-name">Sara Löfgren</div>
+            <div class="author-role">Consultant, Sweden</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-label reveal">FAQ</div>
+    <h2 class="section-title reveal">Common questions</h2>
+
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Do my clients need to download anything?
+          <span class="arrow">▾</span>
+        </button>
+        <div class="faq-a">No. Clients receive a WhatsApp message like any other. They tap the Pay button and pay via a secure web page — no app or account required on their end.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Which payment gateways are supported?
+          <span class="arrow">▾</span>
+        </button>
+        <div class="faq-a">We support Stripe, PayPal, M-Pesa, Flutterwave, Paystack, and local bank transfers in 40+ countries. More gateways are added regularly.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Is my data secure?
+          <span class="arrow">▾</span>
+        </button>
+        <div class="faq-a">Yes. All data is encrypted at rest and in transit. We are SOC 2 compliant and never store raw payment card data. We use WhatsApp's official Business API.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I customize the invoice look?
+          <span class="arrow">▾</span>
+        </button>
+        <div class="faq-a">On Pro and Business plans, you can add your logo, brand colors, and custom footer text. Business plans support full white-label branding.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What happens when I hit my invoice limit?
+          <span class="arrow">▾</span>
+        </button>
+        <div class="faq-a">We'll notify you when you're approaching your limit and invite you to upgrade. We won't cut you off mid-month without warning.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="section-label reveal">Get Started</div>
+  <h2 class="reveal">Start getting paid<br />via WhatsApp today</h2>
+  <p class="reveal">Join thousands of freelancers who get paid faster. Free plan available, no credit card needed.</p>
+  <div class="hero-actions reveal">
+    <a href="#" class="btn-primary">🚀 Create Free Account</a>
+    <a href="#" class="btn-secondary">📞 Book a Demo</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <span class="logo-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.852L.057 23.5a.5.5 0 0 0 .612.612l5.648-1.475A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.869 0-3.618-.488-5.137-1.342l-.366-.213-3.795.993.993-3.794-.213-.366A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        </span>
+        Invoicebillers
+      </a>
+      <p>Invoice clients and get paid faster — all through WhatsApp.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#">Changelog</a>
+      <a href="#">Roadmap</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="#">Documentation</a>
+      <a href="#">API Reference</a>
+      <a href="#">Blog</a>
+      <a href="#">Status</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2025 Invoicebillers. All rights reserved.</span>
+    <span>Made with ♥ for freelancers worldwide</span>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // FAQ toggle
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+</script>
+</body>
+</html>
