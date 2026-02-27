@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoicebillers – Shop Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --green:#25D366;--black:#0a0a0a;--surface:#111413;--surface2:#1a1e1c;
+      --border:rgba(37,211,102,0.15);--text:#e8ede9;--muted:#7a8c7e;
+      --red:#ff4d4d;--yellow:#f5a623;--orange:#f5a623;
+      --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+    }
+    body{background:var(--black);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden;}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0.6rem 0 0.9rem;z-index:100;}
+    .bnav-item{display:flex;flex-direction:column;align-items:center;gap:0.2rem;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font-body);font-size:0.65rem;font-weight:500;padding:0.3rem 1.5rem;border-radius:10px;}
+    .bnav-item.active{color:var(--green);}
+    .bnav-item .icon{font-size:1.3rem;}
+    .bnav-fab{width:54px;height:54px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#0a0a0a;cursor:pointer;border:3px solid var(--black);box-shadow:0 4px 20px rgba(37,211,102,0.45);transform:translateY(-10px);transition:transform 0.2s;}
+    .bnav-fab:hover{transform:translateY(-13px);}
+    .main{padding-bottom:85px;}
+    .page{display:none;}
+    .page.active{display:block;}
+    /* SHOP HEADER */
+    .shop-header{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .shop-info{display:flex;align-items:center;gap:0.8rem;}
+    .shop-avatar{width:44px;height:44px;background:var(--orange);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .shop-name{font-family:var(--font-head);font-weight:800;font-size:1.05rem;color:#fff;}
+    .shop-sub{font-size:0.68rem;color:var(--green);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.1rem;}
+    .icon-btn{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+    /* TABS */
+    .tabs{display:flex;background:var(--surface2);margin:1rem;border-radius:14px;padding:4px;gap:3px;}
+    .tab-btn{flex:1;padding:0.65rem;border:none;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:0.82rem;background:transparent;color:var(--muted);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.35rem;}
+    .tab-btn.active{background:var(--orange);color:#0a0a0a;}
+    /* STATS */
+    .stats-card{margin:0 1rem 0;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.3rem;}
+    .stats-lbl{font-size:0.68rem;color:var(--orange);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;}
+    .stats-row{display:flex;justify-content:space-between;align-items:center;}
+    .stat-vol .snum{font-family:var(--font-head);font-size:2.2rem;font-weight:800;color:var(--orange);}
+    .stat-vol .slbl{font-size:0.68rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+    .stat-ev{text-align:right;}
+    .stat-ev .snum{font-family:var(--font-head);font-size:2.2rem;font-weight:800;color:#fff;}
+    .stat-ev .slbl{font-size:0.68rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+    /* SECTION TITLE */
+    .sec-title{font-size:0.68rem;color:var(--orange);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0 1rem;margin:1.2rem 0 0.5rem;display:flex;align-items:center;gap:0.5rem;}
+    .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+    /* INVOICE LOG */
+    .inv-log{margin:0 1rem 0.55rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0.9rem 1rem;display:flex;align-items:center;gap:0.8rem;cursor:pointer;transition:border-color 0.2s;}
+    .inv-log:hover{border-color:rgba(245,166,35,0.35);}
+    .log-icon{width:38px;height:38px;background:rgba(245,166,35,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .log-info{flex:1;min-width:0;}
+    .log-client{font-weight:600;font-size:0.88rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .log-meta{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+    .log-right{text-align:right;flex-shrink:0;}
+    .log-amt{font-family:var(--font-head);font-weight:700;font-size:0.95rem;}
+    .log-st{font-size:0.68rem;font-weight:700;margin-top:0.1rem;text-transform:uppercase;}
+    .st-paid{color:var(--green);} .st-pending{color:var(--yellow);} .st-overdue{color:var(--red);}
+    .empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+    .empty-state .ei{font-size:2.5rem;margin-bottom:0.8rem;}
+    /* ITEMS PAGE */
+    .items-hdr{display:flex;justify-content:space-between;align-items:center;padding:1rem 1rem 0.5rem;}
+    .items-title{font-family:var(--font-head);font-size:1.1rem;font-weight:800;}
+    .btn-add{background:var(--orange);color:#0a0a0a;border:none;padding:0.5rem 1rem;border-radius:100px;font-weight:700;font-size:0.8rem;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;gap:0.3rem;}
+    .qr-card{margin:0.5rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.5rem;text-align:center;}
+    .qr-ttl{font-family:var(--font-head);font-size:1rem;font-weight:700;margin-bottom:0.2rem;display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+    .qr-sub{font-size:0.78rem;color:var(--muted);margin-bottom:1rem;}
+    .qr-wrap{width:144px;height:144px;background:#fff;border-radius:12px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;padding:8px;}
+    .copy-btn{width:100%;background:transparent;border:1px solid var(--border);color:var(--orange);padding:0.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:0.82rem;display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+    .items-sublbl{font-size:0.68rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1rem 0.3rem;font-weight:600;}
+    .cat-item{margin:0 1rem 0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.8rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+    .cat-name{font-weight:600;font-size:0.88rem;}
+    .cat-cat{font-size:0.7rem;color:var(--muted);}
+    .cat-price{color:var(--orange);font-weight:700;font-size:0.9rem;margin-right:0.8rem;}
+    .cat-del{background:rgba(255,77,77,0.1);color:var(--red);border:none;padding:0.3rem 0.6rem;border-radius:7px;cursor:pointer;font-size:0.78rem;}
+    /* NEW INVOICE PAGE */
+    .page-top{display:flex;align-items:center;gap:0.8rem;padding:1rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+    .back-btn{width:34px;height:34px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;}
+    .page-ttl{font-family:var(--font-head);font-size:1.1rem;font-weight:800;}
+    .inv-form{padding:1rem;}
+    .fld{margin-bottom:0.9rem;}
+    .fld label{font-size:0.68rem;color:var(--muted);display:block;margin-bottom:0.35rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;}
+    .fld input,.fld select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:0.78rem 1rem;color:var(--text);font-family:var(--font-body);font-size:0.9rem;outline:none;}
+    .fld input:focus,.fld select:focus{border-color:rgba(37,211,102,0.4);}
+    .items-lbl{font-size:0.68rem;color:var(--orange);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.6rem;}
+    .toolbar{display:flex;gap:0.5rem;margin-bottom:0.7rem;flex-wrap:wrap;}
+    .tbr-btn{display:flex;align-items:center;gap:0.35rem;padding:0.48rem 0.9rem;border-radius:100px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:0.78rem;font-family:var(--font-body);font-weight:500;transition:all 0.2s;}
+    .tbr-btn:hover{border-color:var(--orange);color:var(--orange);}
+    .irow{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.8rem;margin-bottom:0.5rem;}
+    .irow-top{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;}
+    .iname{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.8rem;color:var(--text);font-family:var(--font-body);font-size:0.85rem;outline:none;}
+    .iname:focus{border-color:rgba(37,211,102,0.35);}
+    .idel{background:rgba(255,77,77,0.1);color:var(--red);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:0.9rem;flex-shrink:0;}
+    .irow-bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;}
+    .mini-wrap .mini-lbl{font-size:0.62rem;color:var(--muted);margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.05em;}
+    .mini-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.6rem;color:var(--text);font-family:var(--font-body);font-size:0.82rem;outline:none;}
+    .mini-inp:focus{border-color:rgba(37,211,102,0.35);}
+    .mini-inp.total-inp{color:var(--orange);font-weight:700;}
+    .add-row{width:100%;background:rgba(37,211,102,0.07);border:1px dashed rgba(37,211,102,0.22);color:var(--green);border-radius:12px;padding:0.68rem;cursor:pointer;font-family:var(--font-body);font-size:0.82rem;font-weight:600;margin-bottom:1rem;}
+    /* BILLING */
+    .bill-sec{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1rem;margin-bottom:1rem;}
+    .bill-lbl{font-size:0.68rem;color:var(--orange);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;}
+    .bill-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem;}
+    .bfld label{font-size:0.63rem;color:var(--muted);display:block;margin-bottom:0.22rem;text-transform:uppercase;letter-spacing:0.05em;}
+    .bfld input,.bfld select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.7rem;color:var(--text);font-family:var(--font-body);font-size:0.85rem;outline:none;}
+    .bfld input:focus,.bfld select:focus{border-color:rgba(245,166,35,0.4);}
+    .totals{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:0.9rem;}
+    .trow{display:flex;justify-content:space-between;padding:0.28rem 0;font-size:0.84rem;}
+    .trow .tl{color:var(--muted);}
+    .trow .tv{font-weight:600;}
+    .trow.disc .tv{color:var(--red);}
+    .trow.tax .tv{color:var(--yellow);}
+    .trow.grand{border-top:1px solid var(--border);margin-top:0.5rem;padding-top:0.7rem;}
+    .trow.grand .tl{font-family:var(--font-head);font-size:1rem;font-weight:800;color:#fff;}
+    .trow.grand .tv{font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--orange);}
+    .save-btn{width:100%;background:var(--green);color:#0a0a0a;border:none;padding:1rem;border-radius:14px;font-weight:700;font-size:1rem;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;}
+    /* MODALS */
+    .modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
+    .modal-bg.open{display:flex;}
+    .modal-sheet{background:var(--surface);border-radius:22px 22px 0 0;padding:1.2rem;width:100%;max-height:72vh;overflow-y:auto;}
+    .modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 1rem;}
+    .modal-ttl{font-family:var(--font-head);font-size:1rem;font-weight:700;margin-bottom:0.9rem;}
+    .pick-item{display:flex;align-items:center;justify-content:space-between;padding:0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:0.5rem;cursor:pointer;transition:border-color 0.2s;}
+    .pick-item:hover{border-color:var(--orange);}
+    .pick-name{font-weight:600;font-size:0.88rem;}
+    .pick-cat{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+    .pick-price{color:var(--orange);font-weight:700;font-size:0.88rem;margin-right:0.6rem;}
+    .pick-add{background:var(--orange);color:#0a0a0a;border:none;padding:0.3rem 0.7rem;border-radius:7px;cursor:pointer;font-size:0.75rem;font-weight:700;}
+    /* INVOICE DETAIL */
+    .det-overlay{display:none;position:fixed;inset:0;z-index:300;background:var(--black);overflow-y:auto;}
+    .det-overlay.open{display:block;}
+    .det-inner{padding:1rem;}
+    .det-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.2rem;margin-bottom:0.9rem;}
+    .det-num{font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--orange);}
+    .det-date{color:var(--muted);font-size:0.78rem;margin-top:0.2rem;}
+    .det-client{font-weight:700;font-size:1rem;margin-top:0.8rem;}
+    .det-contact{color:var(--muted);font-size:0.8rem;margin-top:0.15rem;}
+    .det-table{width:100%;border-collapse:collapse;margin:0.8rem 0;}
+    .det-table th{background:var(--surface2);padding:0.6rem 0.8rem;text-align:left;font-size:0.7rem;color:var(--muted);font-weight:600;}
+    .det-table td{padding:0.7rem 0.8rem;border-bottom:1px solid var(--border);font-size:0.84rem;}
+    .wa-btn{width:100%;background:var(--green);color:#0a0a0a;border:none;padding:0.9rem;border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;}
+    /* TOAST */
+    #toast{display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);padding:0.7rem 1.5rem;border-radius:100px;font-weight:600;font-size:0.85rem;z-index:600;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+  </style>
+</head>
+<body>
+<div class="main">
+
+  <!-- ══ PAGE: HOME ══ -->
+  <div id="page-home" class="page active">
+    <div class="shop-header">
+      <div class="shop-info">
+        <div class="shop-avatar">🏪</div>
+        <div>
+          <div class="shop-name" id="shopName">My Shop</div>
+          <div class="shop-sub">Invoicebillers</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="logout()" title="Logout">🚪</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-inv" onclick="switchTab('inv')">📋 INVOICES</button>
+      <button class="tab-btn" id="tab-cat" onclick="switchTab('cat')">📦 ITEMS</button>
+    </div>
+
+    <!-- INVOICES -->
+    <div id="tc-inv">
+      <div class="stats-card">
+        <div class="stats-lbl">Quick Stats</div>
+        <div class="stats-row">
+          <div class="stat-vol"><div class="snum" id="statVol">₹0</div><div class="slbl">VOLUME</div></div>
+          <div class="stat-ev"><div class="snum" id="statEv">0</div><div class="slbl">EVENTS</div></div>
+        </div>
+      </div>
+      <div class="sec-title">Recent Logs</div>
+      <div id="invLogs"><div class="empty-state"><div class="ei">📋</div><div>No invoices yet</div><div style="font-size:0.78rem;margin-top:0.3rem;">Tap + to create your first invoice</div></div></div>
+    </div>
+
+    <!-- ITEMS -->
+    <div id="tc-cat" style="display:none;">
+      <div class="items-hdr">
+        <div class="items-title">My Items</div>
+        <button class="btn-add" onclick="openAddItem()">+ ADD ITEM</button>
+      </div>
+      <div class="qr-card">
+        <div class="qr-ttl">🔲 Shop Catalog QR</div>
+        <div class="qr-sub">Scan this QR to see all your items at once.</div>
+        <div class="qr-wrap"><canvas id="qrCanvas"></canvas></div>
+        <button class="copy-btn" onclick="copyLink()">🔗 COPY LINK</button>
+      </div>
+      <div class="items-sublbl">Individual Items</div>
+      <div id="catList"><div class="empty-state" style="padding:1.5rem;"><div class="ei">📦</div><div>No items yet. Add your first item!</div></div></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: NEW INVOICE ══ -->
+  <div id="page-invoice" class="page">
+    <div class="page-top">
+      <div class="back-btn" onclick="showPage('home')">←</div>
+      <div class="page-ttl">New Invoice</div>
+    </div>
+    <div class="inv-form">
+      <div class="fld"><label>Customer Name</label><input type="text" id="cliName" placeholder="John Doe"/></div>
+      <div class="fld"><label>Mobile No (WhatsApp)</label><input type="tel" id="cliPhone" placeholder="+91 9876543210"/></div>
+
+      <div class="items-lbl">ITEMS</div>
+      <div class="toolbar">
+        <button class="tbr-btn" onclick="openCatPicker()">📖 CATALOG</button>
+        <button class="tbr-btn" onclick="addBlankRow()">+ ADD</button>
+      </div>
+      <div id="iRows"></div>
+      <button class="add-row" onclick="addBlankRow()">+ Add Another Item</button>
+
+      <div class="bill-sec">
+        <div class="bill-lbl">🧮 BILLING</div>
+        <div class="bill-grid">
+          <div class="bfld"><label>Discount (₹)</label><input type="number" id="disc" placeholder="0" min="0" oninput="calcTotals()"/></div>
+          <div class="bfld"><label>Tax (%)</label><input type="number" id="taxPct" placeholder="0" min="0" oninput="calcTotals()"/></div>
+          <div class="bfld"><label>Status</label>
+            <select id="invSt"><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
+          </div>
+          <div class="bfld"><label>Mode</label>
+            <select id="invMode"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option><option>WhatsApp Pay</option></select>
+          </div>
+        </div>
+        <div class="totals">
+          <div class="trow"><span class="tl">Subtotal</span><span class="tv" id="tSub">₹0.00</span></div>
+          <div class="trow disc"><span class="tl">Discount</span><span class="tv" id="tDisc">-₹0.00</span></div>
+          <div class="trow tax"><span class="tl">Tax</span><span class="tv" id="tTax">+₹0.00</span></div>
+          <div class="trow grand"><span class="tl">Total</span><span class="tv" id="tGrand">₹0.00</span></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveInvoice()">📤 SAVE &amp; SEND</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-item active" id="bn-home" onclick="showPage('home');setNav('home')">
+    <span class="icon">🏠</span><span>Home</span>
+  </button>
+  <button class="bnav-fab" onclick="initInv();showPage('invoice');setNav('new')">+</button>
+  <button class="bnav-item" id="bn-profile" onclick="showProfile()">
+    <span class="icon">👤</span><span>Profile</span>
+  </button>
+</div>
+
+<!-- CATALOG PICKER MODAL -->
+<div class="modal-bg" id="catModal" onclick="if(event.target===this)closeCatPicker()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-ttl">📖 Select from Catalog</div>
+    <div id="pickList"><div style="text-align:center;color:var(--muted);padding:2rem;">No catalog items yet.</div></div>
+  </div>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="modal-bg" id="addItemModal" onclick="if(event.target===this)closeAddItem()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-ttl">➕ Add Catalog Item</div>
+    <div style="display:flex;flex-direction:column;gap:0.8rem;">
+      <div class="bfld"><label>Item Name *</label><input type="text" id="nItemName" placeholder="e.g. Rice Plate"/></div>
+      <div class="bfld"><label>Price (₹) *</label><input type="number" id="nItemPrice" placeholder="e.g. 120" min="0"/></div>
+      <div class="bfld"><label>Category (optional)</label><input type="text" id="nItemCat" placeholder="e.g. Food, Service..."/></div>
+      <button onclick="saveItem()" style="background:var(--orange);color:#0a0a0a;border:none;padding:0.85rem;border-radius:12px;font-weight:700;font-size:0.92rem;cursor:pointer;font-family:var(--font-body);">💾 Save Item</button>
+      <button onclick="closeAddItem()" style="background:transparent;color:var(--muted);border:1px solid var(--border);padding:0.7rem;border-radius:12px;cursor:pointer;font-family:var(--font-body);">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE DETAIL OVERLAY -->
+<div class="det-overlay" id="detOverlay">
+  <div class="page-top" style="position:sticky;top:0;z-index:10;">
+    <div class="back-btn" onclick="closeDet()">←</div>
+    <div class="page-ttl">Invoice Detail</div>
+  </div>
+  <div class="det-inner" id="detContent"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // 🔧 PASTE YOUR FIREBASE CONFIG BELOW
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  const raw = sessionStorage.getItem('ib_user');
+  if (!raw) { window.location.href = 'index.html'; }
+  const user = JSON.parse(raw);
+  document.getElementById('shopName').textContent = user.shop || user.name || 'My Shop';
+
+  // QR Code
+  setTimeout(() => {
+    const shopUrl = `${location.origin}${location.pathname.replace('dashboard.html','')}?shop=${user.id}`;
+    window._shopUrl = shopUrl;
+    try { new QRCode(document.getElementById('qrCanvas'),{text:shopUrl,width:128,height:128,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M}); } catch(e){}
+  }, 600);
+
+  window.copyLink = () => {
+    navigator.clipboard?.writeText(window._shopUrl||location.href)
+      .then(()=>toast('🔗 Link copied!','#25D366','#0a0a0a'))
+      .catch(()=>toast('❌ Copy failed','#ff4d4d','#fff'));
+  };
+
+  // ── INVOICES ──
+  let invoices = [];
+  async function loadInvoices() {
+    try {
+      const q = query(collection(db,'invoices'),where('userId','==',user.id),orderBy('createdAt','desc'));
+      const snap = await getDocs(q);
+      invoices = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderStats(); renderLogs();
+    } catch(e){console.error(e);}
+  }
+
+  function renderStats(){
+    const vol = invoices.reduce((s,i)=>s+(i.grand||0),0);
+    document.getElementById('statVol').textContent = '₹'+vol.toFixed(0);
+    document.getElementById('statEv').textContent  = invoices.length;
+  }
+
+  function renderLogs(){
+    const el = document.getElementById('invLogs');
+    if(!invoices.length){el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><div>No invoices yet</div><div style="font-size:0.78rem;margin-top:0.3rem;">Tap + to create your first invoice</div></div>`;return;}
+    el.innerHTML = invoices.map(inv=>{
+      const sc = inv.status||'pending';
+      const dt = inv.createdAt?.toDate?inv.createdAt.toDate():new Date();
+      const ds = dt.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' | '+dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="inv-log" onclick="openDet('${inv.id}')">
+        <div class="log-icon">🧾</div>
+        <div class="log-info"><div class="log-client">${inv.clientName||'Client'}</div><div class="log-meta">${inv.invNum} • ${ds}</div></div>
+        <div class="log-right"><div class="log-amt">₹${(inv.grand||0).toFixed(0)}</div><div class="log-st st-${sc}">${sc.toUpperCase()}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── CATALOG ──
+  let catalog = [];
+  async function loadCatalog(){
+    try{
+      const q = query(collection(db,'catalog'),where('userId','==',user.id));
+      const snap = await getDocs(q);
+      catalog = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderCatalog();
+    }catch(e){console.error(e);}
+  }
+
+  function renderCatalog(){
+    const el = document.getElementById('catList');
+    el.innerHTML = catalog.length ? catalog.map(c=>`
+      <div class="cat-item">
+        <div><div class="cat-name">${c.name}</div>${c.cat?`<div class="cat-cat">${c.cat}</div>`:''}</div>
+        <div style="display:flex;align-items:center;"><span class="cat-price">₹${parseFloat(c.price).toFixed(2)}</span><button class="cat-del" onclick="delItem('${c.id}')">🗑</button></div>
+      </div>`).join('')
+    : `<div class="empty-state" style="padding:1.5rem;"><div class="ei">📦</div><div>No items yet. Add your first item!</div></div>`;
+
+    // Picker
+    const pl = document.getElementById('pickList');
+    pl.innerHTML = catalog.length ? catalog.map(c=>`
+      <div class="pick-item" onclick="addFromCat('${c.id}')">
+        <div><div class="pick-name">${c.name}</div>${c.cat?`<div class="pick-cat">${c.cat}</div>`:''}</div>
+        <div style="display:flex;align-items:center;"><span class="pick-price">₹${parseFloat(c.price).toFixed(2)}</span><button class="pick-add">+ ADD</button></div>
+      </div>`).join('')
+    : `<div style="text-align:center;color:var(--muted);padding:2rem;">No catalog items yet.</div>`;
+
+    window._catalog = catalog;
+  }
+
+  window.saveItem = async function(){
+    const name=document.getElementById('nItemName').value.trim();
+    const price=document.getElementById('nItemPrice').value;
+    const cat=document.getElementById('nItemCat').value.trim();
+    if(!name||!price){toast('❌ Name and price required','#ff4d4d','#fff');return;}
+    try{
+      const ref=await addDoc(collection(db,'catalog'),{userId:user.id,name,price:parseFloat(price),cat,createdAt:serverTimestamp()});
+      catalog.unshift({id:ref.id,name,price:parseFloat(price),cat});
+      renderCatalog(); closeAddItem();
+      toast('✅ Item added!','#25D366','#0a0a0a');
+    }catch(e){toast('❌ '+e.message,'#ff4d4d','#fff');}
+  };
+
+  window.delItem = async function(id){
+    if(!confirm('Delete this item?'))return;
+    try{
+      await deleteDoc(doc(db,'catalog',id));
+      catalog=catalog.filter(c=>c.id!==id);
+      renderCatalog(); toast('🗑 Deleted','#f5a623','#0a0a0a');
+    }catch(e){toast('❌ Error','#ff4d4d','#fff');}
+  };
+
+  // ── SAVE INVOICE ──
+  window.saveInvoice = async function(){
+    const clientName=document.getElementById('cliName').value.trim();
+    const clientPhone=document.getElementById('cliPhone').value.trim();
+    if(!clientName){toast('❌ Enter customer name','#ff4d4d','#fff');return;}
+    const items=getRows();
+    if(!items.length){toast('❌ Add at least one item','#ff4d4d','#fff');return;}
+    const sub=items.reduce((s,i)=>s+i.qty*i.price,0);
+    const disc=parseFloat(document.getElementById('disc').value)||0;
+    const taxP=parseFloat(document.getElementById('taxPct').value)||0;
+    const taxA=(sub-disc)*taxP/100;
+    const grand=sub-disc+taxA;
+    const status=document.getElementById('invSt').value;
+    const mode=document.getElementById('invMode').value;
+    const invNum='INV-'+Math.floor(100000+Math.random()*900000);
+    try{
+      const ref=await addDoc(collection(db,'invoices'),{
+        userId:user.id,invNum,clientName,clientPhone,items,
+        subtotal:sub,disc,tax:taxP,taxAmt:taxA,grand,status,mode,
+        shopName:user.shop||user.name,createdAt:serverTimestamp()
+      });
+      const ni={id:ref.id,invNum,clientName,clientPhone,items,subtotal:sub,disc,tax:taxP,taxAmt:taxA,grand,status,mode,shopName:user.shop||user.name};
+      invoices.unshift(ni); renderStats(); renderLogs();
+
+      const phone=clientPhone.replace(/\D/g,'');
+      let msg=`*Invoice from ${user.shop||'Invoicebillers'}*\n*${invNum}*\n\nCustomer: ${clientName}\n\n`;
+      items.forEach(i=>{msg+=`• ${i.name} x${i.qty} @ ₹${i.price.toFixed(2)} = ₹${(i.qty*i.price).toFixed(2)}\n`;});
+      msg+=`\nSubtotal: ₹${sub.toFixed(2)}`;
+      if(disc>0)msg+=`\nDiscount: -₹${disc.toFixed(2)}`;
+      if(taxP>0)msg+=`\nTax (${taxP}%): +₹${taxA.toFixed(2)}`;
+      msg+=`\n*Total: ₹${grand.toFixed(2)}*\nMode: ${mode}\nStatus: ${status.toUpperCase()}\n\nThank you! 🙏`;
+
+      showPage('home'); setNav('home');
+      toast('✅ Invoice saved!','#25D366','#0a0a0a');
+      if(phone) setTimeout(()=>window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank'),800);
+    }catch(e){toast('❌ '+e.message,'#ff4d4d','#fff');}
+  };
+
+  // ── INVOICE DETAIL ──
+  window.openDet = function(id){
+    const inv=invoices.find(i=>i.id===id); if(!inv)return;
+    const sc={paid:'var(--green)',pending:'var(--yellow)',overdue:'var(--red)'}[inv.status]||'var(--muted)';
+    const dt=inv.createdAt?.toDate?inv.createdAt.toDate():new Date();
+    document.getElementById('detContent').innerHTML=`
+      <div class="det-card">
+        <div class="det-num">${inv.invNum}</div>
+        <div class="det-date">${dt.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})} ${dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="display:inline-block;margin-top:0.5rem;padding:0.2rem 0.8rem;border-radius:100px;font-size:0.72rem;font-weight:700;color:${sc};background:rgba(0,0,0,0.3);">${(inv.status||'pending').toUpperCase()}</div>
+        <div class="det-client">${inv.clientName}</div>
+        <div class="det-contact">📱 ${inv.clientPhone||'—'} &nbsp;|&nbsp; 💳 ${inv.mode||'Cash'}</div>
+      </div>
+      <div class="det-card">
+        <table class="det-table">
+          <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+          <tbody>${(inv.items||[]).map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>₹${i.price.toFixed(2)}</td><td>₹${(i.qty*i.price).toFixed(2)}</td></tr>`).join('')}</tbody>
+        </table>
+        <div class="totals">
+          <div class="trow"><span class="tl">Subtotal</span><span class="tv">₹${(inv.subtotal||0).toFixed(2)}</span></div>
+          ${inv.disc>0?`<div class="trow disc"><span class="tl">Discount</span><span class="tv">-₹${inv.disc.toFixed(2)}</span></div>`:''}
+          ${inv.tax>0?`<div class="trow tax"><span class="tl">Tax (${inv.tax}%)</span><span class="tv">+₹${inv.taxAmt.toFixed(2)}</span></div>`:''}
+          <div class="trow grand"><span class="tl">Total</span><span class="tv">₹${(inv.grand||0).toFixed(2)}</span></div>
+        </div>
+      </div>
+      <button class="wa-btn" onclick="shareWA('${id}')">📲 Share on WhatsApp</button>`;
+    document.getElementById('detOverlay').classList.add('open');
+  };
+
+  window.shareWA = function(id){
+    const inv=invoices.find(i=>i.id===id); if(!inv)return;
+    const phone=(inv.clientPhone||'').replace(/\D/g,'');
+    let msg=`*Invoice from ${inv.shopName||'Invoicebillers'}*\n*${inv.invNum}*\n\nCustomer: ${inv.clientName}\n\n`;
+    (inv.items||[]).forEach(i=>{msg+=`• ${i.name} x${i.qty} = ₹${(i.qty*i.price).toFixed(2)}\n`;});
+    msg+=`\n*Total: ₹${(inv.grand||0).toFixed(2)}*\nMode: ${inv.mode}\nThank you! 🙏`;
+    window.open(phone?`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+  };
+
+  window.closeDet=()=>document.getElementById('detOverlay').classList.remove('open');
+  window.logout=()=>{sessionStorage.removeItem('ib_user');window.location.href='index.html';};
+
+  function toast(msg,bg,color){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.style.background=bg;t.style.color=color;t.style.display='block';
+    setTimeout(()=>t.style.display='none',3500);
+  }
+  window.toast=toast;
+
+  loadInvoices(); loadCatalog();
+</script>
+
+<script>
+  function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');}
+  window.showPage=showPage;
+  function setNav(n){document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active');}
+  window.setNav=setNav;
+  function switchTab(t){
+    document.getElementById('tc-inv').style.display=t==='inv'?'block':'none';
+    document.getElementById('tc-cat').style.display=t==='cat'?'block':'none';
+    document.getElementById('tab-inv').classList.toggle('active',t==='inv');
+    document.getElementById('tab-cat').classList.toggle('active',t==='cat');
+  }
+  window.switchTab=switchTab;
+  function showProfile(){
+    const u=JSON.parse(sessionStorage.getItem('ib_user')||'{}');
+    alert(`👤 Profile\n\nName: ${u.name||'—'}\nShop: ${u.shop||'—'}\nEmail: ${u.email||'—'}\nPhone: ${u.phone||'—'}\nBusiness: ${u.biz||'—'}`);
+  }
+  window.showProfile=showProfile;
+
+  // Invoice rows
+  function initInv(){
+    document.getElementById('cliName').value='';
+    document.getElementById('cliPhone').value='';
+    document.getElementById('disc').value='';
+    document.getElementById('taxPct').value='';
+    document.getElementById('invSt').value='paid';
+    document.getElementById('invMode').value='Cash';
+    document.getElementById('iRows').innerHTML='';
+    calcTotals(); addBlankRow();
+  }
+  window.initInv=initInv;
+
+  function addBlankRow(){
+    const wrap=document.getElementById('iRows');
+    const d=document.createElement('div');
+    d.className='irow';
+    d.innerHTML=`
+      <div class="irow-top">
+        <input class="iname" type="text" placeholder="Item name" oninput="calcTotals()"/>
+        <button class="idel" onclick="delRow(this)">🗑</button>
+      </div>
+      <div class="irow-bot">
+        <div class="mini-wrap"><div class="mini-lbl">PRICE (₹)</div><input class="mini-inp iprice" type="number" placeholder="0" min="0" step="0.01" oninput="calcTotals()"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">QTY</div><input class="mini-inp iqty" type="number" value="1" min="1" oninput="calcTotals()"/></div>
+        <div class="mini-wrap"><div class="mini-lbl">TOTAL</div><input class="mini-inp total-inp itotal" type="text" readonly/></div>
+      </div>`;
+    wrap.appendChild(d); calcTotals();
+  }
+  window.addBlankRow=addBlankRow;
+
+  function delRow(btn){
+    if(document.querySelectorAll('.irow').length<=1)return;
+    btn.closest('.irow').remove(); calcTotals();
+  }
+  window.delRow=delRow;
+
+  function getRows(){
+    return [...document.querySelectorAll('.irow')].map(r=>({
+      name:r.querySelector('.iname').value.trim(),
+      price:parseFloat(r.querySelector('.iprice').value)||0,
+      qty:parseFloat(r.querySelector('.iqty').value)||1
+    })).filter(i=>i.name);
+  }
+  window.getRows=getRows;
+
+  function calcTotals(){
+    let sub=0;
+    document.querySelectorAll('.irow').forEach(r=>{
+      const p=parseFloat(r.querySelector('.iprice')?.value)||0;
+      const q=parseFloat(r.querySelector('.iqty')?.value)||1;
+      const t=p*q; sub+=t;
+      const ti=r.querySelector('.itotal'); if(ti)ti.value='₹'+t.toFixed(2);
+    });
+    const disc=parseFloat(document.getElementById('disc')?.value)||0;
+    const taxP=parseFloat(document.getElementById('taxPct')?.value)||0;
+    const taxA=(sub-disc)*taxP/100;
+    const grand=sub-disc+taxA;
+    const s=id=>document.getElementById(id);
+    if(s('tSub'))s('tSub').textContent='₹'+sub.toFixed(2);
+    if(s('tDisc'))s('tDisc').textContent='-₹'+disc.toFixed(2);
+    if(s('tTax'))s('tTax').textContent='+₹'+taxA.toFixed(2);
+    if(s('tGrand'))s('tGrand').textContent='₹'+grand.toFixed(2);
+  }
+  window.calcTotals=calcTotals;
+
+  function openCatPicker(){document.getElementById('catModal').classList.add('open');}
+  function closeCatPicker(){document.getElementById('catModal').classList.remove('open');}
+  window.openCatPicker=openCatPicker; window.closeCatPicker=closeCatPicker;
+
+  function addFromCat(id){
+    const cat=window._catalog||[]; const item=cat.find(c=>c.id===id); if(!item)return;
+    const ex=[...document.querySelectorAll('.iname')].find(i=>i.value===item.name);
+    if(ex){const qEl=ex.closest('.irow').querySelector('.iqty');qEl.value=parseInt(qEl.value||1)+1;calcTotals();closeCatPicker();return;}
+    addBlankRow();
+    const rows=document.querySelectorAll('.irow');
+    const last=rows[rows.length-1];
+    last.querySelector('.iname').value=item.name;
+    last.querySelector('.iprice').value=item.price;
+    last.querySelector('.iqty').value=1;
+    calcTotals(); closeCatPicker();
+  }
+  window.addFromCat=addFromCat;
+
+  function openAddItem(){document.getElementById('addItemModal').classList.add('open');['nItemName','nItemPrice','nItemCat'].forEach(id=>document.getElementById(id).value='');}
+  function closeAddItem(){document.getElementById('addItemModal').classList.remove('open');}
+  window.openAddItem=openAddItem; window.closeAddItem=closeAddItem;
+
+  addBlankRow();
+</script>
+</body>
+</html>
