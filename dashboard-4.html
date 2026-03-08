@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Invoicebillers – Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#22c55e;--g2:#16a34a;--glow:rgba(34,197,94,0.15);
+  --bg:#060a06;--s1:#0d120d;--s2:#131a13;--s3:#1a221a;
+  --border:rgba(34,197,94,0.12);--border2:rgba(255,255,255,0.07);
+  --text:#e2ebe2;--muted:#6b7f6b;--white:#fff;
+  --red:#ef4444;--amber:#f59e0b;
+  --fn:'Plus Jakarta Sans',sans-serif;
+}
+html,body{height:100%;-webkit-font-smoothing:antialiased;}
+body{background:var(--bg);color:var(--text);font-family:var(--fn);overflow-x:hidden;}
+.app{display:flex;flex-direction:column;min-height:100svh;}
+.main-content{flex:1;padding-bottom:72px;}
+
+/* ── TOP BAR ── */
+.topbar{position:sticky;top:0;z-index:80;background:rgba(6,10,6,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;height:58px;}
+.topbar-left{display:flex;align-items:center;gap:0.7rem;}
+.shop-av{width:38px;height:38px;background:linear-gradient(135deg,var(--g2),var(--g));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#000;flex-shrink:0;}
+.shop-name{font-weight:800;font-size:0.95rem;color:var(--white);letter-spacing:-0.01em;}
+.shop-badge{font-size:0.6rem;color:var(--g);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+.icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border2);background:var(--s2);cursor:pointer;font-size:0.95rem;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all 0.2s;}
+.icon-btn:hover{border-color:var(--border);color:var(--text);}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:80;background:rgba(13,18,13,0.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;height:64px;padding:0 0.5rem;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.2rem;border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--fn);font-size:0.6rem;font-weight:600;padding:0.3rem;transition:color 0.2s;letter-spacing:0.03em;text-transform:uppercase;}
+.bnav-btn.active{color:var(--g);}
+.bnav-btn .bico{font-size:1.25rem;line-height:1;}
+.bnav-fab{width:52px;height:52px;border-radius:50%;background:var(--g);border:none;cursor:pointer;font-size:1.7rem;color:#000;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(34,197,94,0.45);transform:translateY(-8px);transition:transform 0.2s,box-shadow 0.2s;flex-shrink:0;}
+.bnav-fab:hover{transform:translateY(-11px);box-shadow:0 8px 28px rgba(34,197,94,0.5);}
+
+/* ── PAGES ── */
+.page{display:none;animation:pgIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes pgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;padding:1rem 1rem 0;}
+.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:0.9rem 0.6rem;text-align:center;}
+.stat-num{font-size:1.35rem;font-weight:800;color:var(--g);line-height:1;letter-spacing:-0.03em;}
+.stat-lbl{font-size:0.6rem;color:var(--muted);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+
+/* ── TABS ── */
+.tab-bar{display:flex;gap:3px;background:var(--s2);border-radius:12px;padding:3px;margin:0.9rem 1rem 0;}
+.tab-btn{flex:1;padding:0.6rem;border:none;border-radius:9px;cursor:pointer;font-family:var(--fn);font-weight:700;font-size:0.8rem;background:transparent;color:var(--muted);transition:all 0.2s;}
+.tab-btn.active{background:var(--g);color:#000;}
+
+/* ── SECTION HDR ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:1rem 1rem 0.4rem;}
+.sec-ttl{font-size:0.68rem;color:var(--muted);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+.sec-cnt{font-size:0.68rem;color:var(--g);font-weight:700;}
+
+/* ── INVOICE CARDS ── */
+.inv-list{padding:0 1rem 1rem;}
+.inv-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:0.9rem;margin-bottom:0.55rem;cursor:pointer;transition:border-color 0.2s,transform 0.15s;display:flex;align-items:center;gap:0.8rem;}
+.inv-card:hover{border-color:rgba(34,197,94,0.3);transform:translateX(2px);}
+.inv-ico{width:40px;height:40px;background:rgba(34,197,94,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.inv-body{flex:1;min-width:0;}
+.inv-client{font-weight:700;font-size:0.9rem;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inv-meta{font-size:0.7rem;color:var(--muted);margin-top:0.15rem;}
+.inv-right{text-align:right;flex-shrink:0;}
+.inv-amt{font-weight:800;font-size:1rem;color:var(--white);}
+.spill{display:inline-block;font-size:0.6rem;font-weight:700;padding:0.18rem 0.55rem;border-radius:100px;margin-top:0.25rem;letter-spacing:0.04em;text-transform:uppercase;}
+.sp-paid{background:rgba(34,197,94,0.12);color:var(--g);}
+.sp-pending{background:rgba(245,158,11,0.12);color:var(--amber);}
+.sp-overdue{background:rgba(239,68,68,0.12);color:var(--red);}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.empty-ico{font-size:2.8rem;margin-bottom:0.8rem;}
+.empty-ttl{font-weight:700;color:var(--text);margin-bottom:0.3rem;}
+.empty-sub{font-size:0.82rem;}
+
+/* ── ITEMS PAGE ── */
+.items-page{padding:0 1rem 1rem;}
+.qr-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:1.3rem;text-align:center;margin:0.8rem 0;}
+.qr-title{font-weight:800;font-size:0.95rem;margin-bottom:0.2rem;}
+.qr-sub{font-size:0.78rem;color:var(--muted);margin-bottom:1rem;}
+.qr-img{width:140px;height:140px;background:#fff;border-radius:10px;margin:0 auto 0.9rem;display:flex;align-items:center;justify-content:center;padding:6px;}
+.link-btn{width:100%;background:transparent;border:1px solid var(--border);color:var(--g);padding:0.6rem;border-radius:10px;cursor:pointer;font-family:var(--fn);font-weight:600;font-size:0.82rem;display:flex;align-items:center;justify-content:center;gap:0.4rem;transition:background 0.2s;}
+.link-btn:hover{background:var(--glow);}
+.cat-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:0.8rem 1rem;margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;}
+.cat-name{font-weight:700;font-size:0.88rem;}
+.cat-cat-lbl{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+.cat-price{color:var(--g);font-weight:700;font-size:0.9rem;margin-right:0.7rem;}
+.del-btn{background:rgba(239,68,68,0.1);color:var(--red);border:none;padding:0.3rem 0.6rem;border-radius:7px;cursor:pointer;font-size:0.78rem;font-family:var(--fn);}
+
+/* ── NEW INVOICE PAGE ── */
+.pg-header{position:sticky;top:0;z-index:60;background:rgba(6,10,6,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.8rem;padding:0 1rem;height:54px;}
+.back-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--border2);background:var(--s2);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pg-ttl{font-weight:800;font-size:1rem;}
+.inv-form{padding:1rem;max-width:720px;}
+.fld{margin-bottom:0.85rem;}
+.fld label{display:block;font-size:0.64rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;}
+.inp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:0.72rem 0.9rem;color:var(--text);font-family:var(--fn);font-size:0.9rem;outline:none;transition:border-color 0.2s;}
+.inp:focus{border-color:rgba(34,197,94,0.4);}
+select.inp{appearance:none;cursor:pointer;}
+.items-label{font-size:0.64rem;color:var(--g);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;display:block;}
+.tool-row{display:flex;gap:0.5rem;margin-bottom:0.7rem;flex-wrap:wrap;}
+.tool-btn{display:flex;align-items:center;gap:0.3rem;padding:0.45rem 0.85rem;border-radius:8px;border:1px solid var(--border2);background:var(--s2);color:var(--text);cursor:pointer;font-size:0.78rem;font-family:var(--fn);font-weight:600;transition:all 0.2s;}
+.tool-btn:hover{border-color:var(--g);color:var(--g);}
+.irow{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:0.75rem;margin-bottom:0.5rem;}
+.irow-top{display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center;}
+.iname{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:0.5rem 0.75rem;color:var(--text);font-family:var(--fn);font-size:0.86rem;outline:none;}
+.iname:focus{border-color:rgba(34,197,94,0.35);}
+.idel{width:32px;height:32px;background:rgba(239,68,68,0.1);color:var(--red);border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.irow-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;}
+.mini-fld .mini-lbl{font-size:0.58rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.2rem;}
+.mini-inp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:0.45rem 0.6rem;color:var(--text);font-family:var(--fn);font-size:0.82rem;outline:none;}
+.mini-inp:focus{border-color:rgba(34,197,94,0.35);}
+.mini-total{color:var(--g);font-weight:700;}
+.add-row-btn{width:100%;background:rgba(34,197,94,0.06);border:1px dashed rgba(34,197,94,0.2);color:var(--g);border-radius:10px;padding:0.65rem;cursor:pointer;font-family:var(--fn);font-size:0.82rem;font-weight:600;margin-bottom:0.9rem;transition:background 0.2s;}
+.add-row-btn:hover{background:rgba(34,197,94,0.1);}
+.billing-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:1rem;}
+.billing-lbl{font-size:0.64rem;color:var(--g);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.8rem;display:block;}
+.billing-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.8rem;}
+.bfld label{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.25rem;}
+.bfld .inp{padding:0.55rem 0.7rem;font-size:0.85rem;}
+.totals-box{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:0.85rem;}
+.t-row{display:flex;justify-content:space-between;align-items:center;padding:0.25rem 0;font-size:0.84rem;}
+.t-row .tl{color:var(--muted);}
+.t-row .tv{font-weight:600;}
+.t-disc .tv{color:var(--red);}
+.t-tax .tv{color:var(--amber);}
+.t-grand{border-top:1px solid var(--border);margin-top:0.5rem;padding-top:0.65rem;}
+.t-grand .tl{font-weight:800;font-size:0.95rem;color:var(--white);}
+.t-grand .tv{font-weight:800;font-size:1.3rem;color:var(--g);}
+.save-btn{width:100%;background:var(--g);color:#000;border:none;padding:1rem;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;font-family:var(--fn);display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:opacity 0.2s,transform 0.15s;margin-bottom:0.6rem;}
+.save-btn:hover{opacity:0.88;transform:translateY(-1px);}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.save-btn-sec{background:var(--s3);color:var(--text);border:1px solid var(--border2);}
+.save-btn-sec:hover{border-color:var(--g);}
+
+/* ── MODALS ── */
+.modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
+.modal-bg.open{display:flex;}
+.sheet{background:var(--s1);border-radius:20px 20px 0 0;padding:1rem 1rem 1.5rem;width:100%;max-height:72vh;overflow-y:auto;}
+.sheet-handle{width:40px;height:4px;background:var(--border2);border-radius:4px;margin:0 auto 1rem;}
+.sheet-ttl{font-weight:800;font-size:1rem;margin-bottom:0.8rem;}
+.pick-item{display:flex;align-items:center;justify-content:space-between;padding:0.8rem;background:var(--s2);border:1px solid var(--border);border-radius:12px;margin-bottom:0.45rem;cursor:pointer;transition:border-color 0.2s;}
+.pick-item:hover{border-color:rgba(34,197,94,0.35);}
+.pick-name{font-weight:700;font-size:0.88rem;}
+.pick-cat-lbl{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+.pick-price{color:var(--g);font-weight:700;font-size:0.88rem;margin-right:0.6rem;}
+.pick-add-btn{background:var(--g);color:#000;border:none;padding:0.3rem 0.7rem;border-radius:7px;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:var(--fn);}
+.modal-center{display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1.5rem;}
+.modal-center.open{display:flex;}
+.modal-box{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:1.5rem;width:100%;max-width:400px;}
+.modal-ttl{font-weight:800;font-size:1rem;margin-bottom:1.2rem;}
+.modal-actions{display:flex;gap:0.6rem;margin-top:1rem;}
+.btn-cancel{flex:1;background:var(--s2);color:var(--muted);border:1px solid var(--border2);padding:0.72rem;border-radius:10px;cursor:pointer;font-family:var(--fn);font-weight:600;font-size:0.88rem;}
+.btn-ok{flex:1;background:var(--g);color:#000;border:none;padding:0.72rem;border-radius:10px;cursor:pointer;font-family:var(--fn);font-weight:700;font-size:0.88rem;}
+
+/* ── DETAIL OVERLAY ── */
+.det-overlay{display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;}
+.det-overlay.open{display:block;}
+.det-header{position:sticky;top:0;z-index:10;background:rgba(6,10,6,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;height:54px;}
+.det-actions{display:flex;gap:0.5rem;}
+.det-body{padding:1rem;max-width:640px;}
+.det-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:0.8rem;}
+.det-inv-num{font-weight:800;font-size:1.3rem;color:var(--g);letter-spacing:-0.02em;}
+.det-date{color:var(--muted);font-size:0.78rem;margin-top:0.15rem;}
+.det-client{font-weight:700;font-size:1rem;margin-top:0.7rem;}
+.det-contact{color:var(--muted);font-size:0.8rem;margin-top:0.1rem;}
+.det-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.8rem 0;}
+.det-table th{background:var(--s2);padding:0.55rem 0.7rem;text-align:left;color:var(--muted);font-weight:700;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.05em;}
+.det-table td{padding:0.65rem 0.7rem;border-bottom:1px solid var(--border);}
+.det-table tr:last-child td{border-bottom:none;}
+.wa-btn{width:100%;background:var(--g);color:#000;border:none;padding:0.9rem;border-radius:12px;font-weight:700;font-size:0.95rem;cursor:pointer;font-family:var(--fn);display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:opacity 0.2s;}
+.wa-btn:hover{opacity:0.88;}
+.del-inv-btn{width:100%;background:rgba(239,68,68,0.08);color:var(--red);border:1px solid rgba(239,68,68,0.2);padding:0.75rem;border-radius:12px;font-weight:600;font-size:0.88rem;cursor:pointer;font-family:var(--fn);margin-top:0.6rem;transition:background 0.2s;}
+.del-inv-btn:hover{background:rgba(239,68,68,0.15);}
+
+/* ── PROFILE PAGE ── */
+.profile-page{padding:1.5rem 1rem;max-width:500px;}
+.profile-hero{text-align:center;margin-bottom:2rem;}
+.profile-av-big{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--g2),var(--g));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#000;margin:0 auto 0.8rem;}
+.profile-name{font-weight:800;font-size:1.2rem;color:var(--white);}
+.profile-email{color:var(--muted);font-size:0.85rem;margin-top:0.2rem;}
+.profile-section{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1rem;}
+.p-row{display:flex;justify-content:space-between;align-items:center;padding:0.9rem 1rem;border-bottom:1px solid var(--border);}
+.p-row:last-child{border-bottom:none;}
+.p-key{font-size:0.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.p-val{font-size:0.88rem;color:var(--white);font-weight:600;}
+.logout-btn{width:100%;background:rgba(239,68,68,0.08);color:var(--red);border:1px solid rgba(239,68,68,0.2);padding:0.9rem;border-radius:12px;font-family:var(--fn);font-weight:700;font-size:0.95rem;cursor:pointer;transition:background 0.2s;}
+.logout-btn:hover{background:rgba(239,68,68,0.15);}
+
+/* ── TOAST ── */
+#toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:0.7rem 1.5rem;border-radius:100px;font-weight:700;font-size:0.85rem;z-index:999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,0.5);font-family:var(--fn);}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:2rem;color:var(--muted);}
+.loading::after{content:'';display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--g);border-radius:50%;animation:spin 0.7s linear infinite;margin-left:0.5rem;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── DESKTOP SIDEBAR ── */
+@media(min-width:768px){
+  .app{flex-direction:row;}
+  .main-content{flex:1;padding-bottom:0;margin-left:220px;}
+  .bottom-nav{position:fixed;left:0;top:0;bottom:0;width:220px;height:100svh;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:none;border-right:1px solid var(--border);padding:0 0.8rem;gap:0.15rem;overflow-y:auto;}
+  .nav-logo{display:flex !important;align-items:center;gap:0.6rem;padding:1.2rem 0.5rem 1.2rem;border-bottom:1px solid var(--border);margin-bottom:0.8rem;}
+  .nav-logo-mark{width:28px;height:28px;background:var(--g);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#000;}
+  .nav-logo-text{font-weight:800;font-size:0.88rem;color:var(--white);}
+  .bnav-btn{flex:none;flex-direction:row;justify-content:flex-start;padding:0.72rem 1rem;border-radius:10px;gap:0.7rem;font-size:0.82rem;letter-spacing:0;text-transform:none;}
+  .bnav-btn.active{background:rgba(34,197,94,0.1);color:var(--g);}
+  .bnav-btn .bico{font-size:1.05rem;}
+  .bnav-fab{width:auto;height:auto;border-radius:10px;transform:none;font-size:0.82rem;font-weight:700;padding:0.72rem 1rem;justify-content:flex-start;gap:0.7rem;margin-top:0.3rem;box-shadow:none;}
+  .bnav-fab:hover{transform:none;box-shadow:none;opacity:0.88;}
+  .fab-txt{display:inline !important;}
+  .fab-ico{display:none !important;}
+  .modal-bg{align-items:center;}
+  .sheet{border-radius:18px;max-width:500px;}
+  .topbar{margin-left:0;}
+  .billing-grid{grid-template-columns:1fr 1fr 1fr 1fr;}
+}
+@media(min-width:1100px){
+  .main-content{margin-left:240px;}
+  .bottom-nav{width:240px;}
+}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR / BOTTOM NAV -->
+  <nav class="bottom-nav" id="mainNav">
+    <div class="nav-logo" style="display:none">
+      <div class="nav-logo-mark">IB</div>
+      <div class="nav-logo-text">Invoicebillers</div>
+    </div>
+    <button class="bnav-btn active" id="bn-home" onclick="showPage('home');setNav('home')">
+      <span class="bico">🏠</span><span>Home</span>
+    </button>
+    <button class="bnav-fab" id="bn-new" onclick="initNewInvoice();showPage('invoice');setNav('new')">
+      <span class="fab-ico">＋</span>
+      <span class="fab-txt" style="display:none">New Invoice</span>
+    </button>
+    <button class="bnav-btn" id="bn-profile" onclick="showPage('profile');setNav('profile')">
+      <span class="bico">👤</span><span>Profile</span>
+    </button>
+  </nav>
+
+  <div class="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="shop-av" id="shopAv">S</div>
+        <div>
+          <div class="shop-name" id="shopName">My Shop</div>
+          <div class="shop-badge">● Invoicebillers</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="refreshAll()" title="Refresh data">🔄</button>
+    </div>
+
+    <!-- PAGE: HOME -->
+    <div class="page active" id="page-home">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" id="s-total">–</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-paid">–</div><div class="stat-lbl">Paid</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-pending">–</div><div class="stat-lbl">Pending</div></div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-inv"   onclick="switchTab('inv')">📋 Invoices</button>
+        <button class="tab-btn"        id="tab-items" onclick="switchTab('items')">📦 My Items</button>
+      </div>
+
+      <!-- Invoices tab -->
+      <div id="tc-inv">
+        <div class="sec-hdr">
+          <span class="sec-ttl">All Invoices</span>
+          <span class="sec-cnt" id="invCount"></span>
+        </div>
+        <div class="inv-list" id="invList"><div class="loading">Loading invoices</div></div>
+      </div>
+
+      <!-- Items tab -->
+      <div id="tc-items" style="display:none">
+        <div class="items-page">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.8rem 0;">
+            <span class="sec-ttl">Catalog</span>
+            <button class="tool-btn" onclick="openAddItem()">+ Add Item</button>
+          </div>
+          <div class="qr-box">
+            <div class="qr-title">🔲 Shop QR Code</div>
+            <div class="qr-sub">Share this with clients to show your catalog</div>
+            <div class="qr-img"><canvas id="qrCanvas"></canvas></div>
+            <button class="link-btn" onclick="copyLink()">🔗 Copy Shop Link</button>
+          </div>
+          <div class="sec-ttl" style="margin-bottom:0.6rem;">Items</div>
+          <div id="catList"><div class="loading">Loading catalog</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: NEW INVOICE -->
+    <div class="page" id="page-invoice">
+      <div class="pg-header">
+        <button class="back-btn" onclick="showPage('home');setNav('home')">←</button>
+        <div class="pg-ttl">New Invoice</div>
+      </div>
+      <div class="inv-form">
+        <div class="fld"><label>Customer Name *</label><input class="inp" type="text" id="cliName" placeholder="e.g. John Doe" autocomplete="off"/></div>
+        <div class="fld"><label>WhatsApp / Mobile *</label><input class="inp" type="tel" id="cliPhone" placeholder="e.g. +91 9876543210"/></div>
+        <div class="fld"><label>Note (optional)</label><input class="inp" type="text" id="cliNote" placeholder="e.g. Website design services"/></div>
+
+        <div style="margin-bottom:0.85rem;">
+          <span class="items-label">Items</span>
+          <div class="tool-row">
+            <button class="tool-btn" onclick="openCatPicker()">📖 Pick from Catalog</button>
+            <button class="tool-btn" onclick="addBlankRow()">＋ Add Row</button>
+          </div>
+          <div id="iRows"></div>
+          <button class="add-row-btn" onclick="addBlankRow()">＋ Add Another Item</button>
+        </div>
+
+        <div class="billing-box">
+          <span class="billing-lbl">Billing Summary</span>
+          <div class="billing-grid">
+            <div class="bfld"><label>Discount (₹)</label><input class="inp" type="number" id="disc" placeholder="0" min="0" step="0.01" oninput="calcTotals()"/></div>
+            <div class="bfld"><label>Tax (%)</label><input class="inp" type="number" id="taxPct" placeholder="0" min="0" step="0.1" oninput="calcTotals()"/></div>
+            <div class="bfld"><label>Status</label>
+              <select class="inp" id="invSt">
+                <option value="paid">✅ Paid</option>
+                <option value="pending" selected>⏳ Pending</option>
+                <option value="overdue">🔴 Overdue</option>
+              </select>
+            </div>
+            <div class="bfld"><label>Payment Mode</label>
+              <select class="inp" id="invMode">
+                <option>Cash</option><option>UPI</option><option>Card</option>
+                <option>Bank Transfer</option><option>WhatsApp Pay</option><option>Cheque</option>
+              </select>
+            </div>
+          </div>
+          <div class="totals-box">
+            <div class="t-row"><span class="tl">Subtotal</span><span class="tv" id="tSub">₹0.00</span></div>
+            <div class="t-row t-disc"><span class="tl">Discount</span><span class="tv" id="tDisc">-₹0.00</span></div>
+            <div class="t-row t-tax"><span class="tl">Tax</span><span class="tv" id="tTax">+₹0.00</span></div>
+            <div class="t-row t-grand"><span class="tl">Grand Total</span><span class="tv" id="tGrand">₹0.00</span></div>
+          </div>
+        </div>
+
+        <button class="save-btn" id="saveBtn" onclick="saveInvoice(true)">📲 Save &amp; Send via WhatsApp</button>
+        <button class="save-btn save-btn-sec" id="saveSilentBtn" onclick="saveInvoice(false)">💾 Save Only</button>
+        <div style="height:1rem;"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="profile-page">
+        <div class="profile-hero">
+          <div class="profile-av-big" id="profileAv">S</div>
+          <div class="profile-name" id="pName">–</div>
+          <div class="profile-email" id="pEmail">–</div>
+        </div>
+        <div class="profile-section" id="profileData"></div>
+        <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- CATALOG PICKER -->
+<div class="modal-bg" id="catModal" onclick="if(event.target===this)closeCatPicker()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-ttl">📖 Pick from Catalog</div>
+    <div id="pickList"></div>
+  </div>
+</div>
+
+<!-- ADD ITEM -->
+<div class="modal-center" id="addItemModal" onclick="if(event.target===this)closeAddItem()">
+  <div class="modal-box">
+    <div class="modal-ttl">📦 Add Catalog Item</div>
+    <div class="fld"><label>Item Name *</label><input class="inp" type="text" id="nItemName" placeholder="e.g. Web Design"/></div>
+    <div class="fld"><label>Price (₹) *</label><input class="inp" type="number" id="nItemPrice" placeholder="0" min="0" step="0.01"/></div>
+    <div class="fld"><label>Category (optional)</label><input class="inp" type="text" id="nItemCat" placeholder="e.g. Design, Services"/></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddItem()">Cancel</button>
+      <button class="btn-ok" onclick="saveItem()">Add Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE DETAIL -->
+<div class="det-overlay" id="detOverlay">
+  <div class="det-header">
+    <div style="display:flex;align-items:center;gap:0.8rem;">
+      <button class="back-btn" onclick="closeDet()">←</button>
+      <div class="pg-ttl">Invoice Detail</div>
+    </div>
+    <div class="det-actions">
+      <button class="icon-btn" id="detShareBtn" title="Share on WhatsApp">📲</button>
+      <button class="icon-btn" id="detDeleteBtn" title="Delete invoice" style="color:var(--red)">🗑</button>
+    </div>
+  </div>
+  <div class="det-body" id="detContent"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- FIREBASE MODULE -->
+<script type="module">
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, deleteDoc, doc,
+  query, where, serverTimestamp, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ══════════════════════════════════════════════
+//  🔧 PASTE YOUR FIREBASE CONFIG HERE
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "PASTE_YOUR_API_KEY",
+  authDomain:        "PASTE_YOUR_AUTH_DOMAIN",
+  projectId:         "PASTE_YOUR_PROJECT_ID",
+  storageBucket:     "PASTE_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId:             "PASTE_YOUR_APP_ID"
+};
+// ══════════════════════════════════════════════
+
+// ── Auth guard — uses localStorage so session survives refresh & back button ──
+const user = (() => {
+  try {
+    return JSON.parse(localStorage.getItem('ib_user') || 'null');
+  } catch { return null; }
+})();
+if (!user) { window.location.replace('index.html'); }
+
+// ── Firebase init ──
+let db;
+try {
+  const fbApp = initializeApp(firebaseConfig);
+  db = getFirestore(fbApp);
+  window.__db = db;
+} catch(e) {
+  showToast('⚠️ Firebase config missing — data will not save','#f59e0b','#000');
+}
+
+// ── Populate UI with user ──
+const sn = user?.shop || user?.name || 'My Shop';
+document.getElementById('shopName').textContent   = sn;
+document.getElementById('shopAv').textContent     = sn[0].toUpperCase();
+document.getElementById('profileAv').textContent  = sn[0].toUpperCase();
+document.getElementById('pName').textContent      = user?.name  || '–';
+document.getElementById('pEmail').textContent     = user?.email || '–';
+document.getElementById('profileData').innerHTML  = `
+  <div class="p-row"><span class="p-key">Shop</span><span class="p-val">${esc(user?.shop||'–')}</span></div>
+  <div class="p-row"><span class="p-key">Phone</span><span class="p-val">${esc(user?.phone||'–')}</span></div>
+  <div class="p-row"><span class="p-key">Business</span><span class="p-val">${esc(user?.biz||'–')}</span></div>
+  <div class="p-row"><span class="p-key">Status</span><span class="p-val" style="color:var(--g)">✅ Active</span></div>
+`;
+
+// ── State ──
+let invoices = [];
+let catalog  = [];
+let unsubInv = null;
+let currentDetId = null;
+
+// ── Sort helper (newest first, no orderBy needed) ──
+function sortByDate(arr) {
+  return arr.sort((a, b) => {
+    const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt?.seconds||0)*1000;
+    const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt?.seconds||0)*1000;
+    return tb - ta;
+  });
+}
+
+// ══ LOAD INVOICES — real-time, no composite index needed ══
+function loadInvoices() {
+  if (!db) {
+    document.getElementById('invList').innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-sub">Firebase not configured — paste your config</div></div>';
+    return;
+  }
+  try {
+    // Only filter by userId — no orderBy so no index required
+    const q = query(collection(db,'invoices'), where('userId','==',user.id));
+    if (unsubInv) unsubInv();
+    unsubInv = onSnapshot(q, snap => {
+      invoices = sortByDate(snap.docs.map(d => ({id:d.id,...d.data()})));
+      renderStats(); renderInvoices();
+    }, err => {
+      console.warn('Snapshot failed:', err.code, '— trying one-time fetch');
+      fetchOnce();
+    });
+  } catch(e) {
+    console.warn('onSnapshot setup failed:', e);
+    fetchOnce();
+  }
+}
+
+async function fetchOnce() {
+  if (!db) return;
+  try {
+    // No orderBy — avoids composite index requirement
+    const q = query(collection(db,'invoices'), where('userId','==',user.id));
+    const snap = await getDocs(q);
+    invoices = sortByDate(snap.docs.map(d => ({id:d.id,...d.data()})));
+    renderStats(); renderInvoices();
+  } catch(e) {
+    console.error('fetchOnce error:', e);
+    document.getElementById('invList').innerHTML =
+      '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">Could not load invoices</div><div class="empty-sub">Check your internet connection and try refreshing</div></div>';
+  }
+}
+
+// ══ LOAD CATALOG — no orderBy ══
+async function loadCatalog() {
+  if (!db) return;
+  try {
+    const q = query(collection(db,'catalog'), where('userId','==',user.id));
+    const snap = await getDocs(q);
+    catalog = sortByDate(snap.docs.map(d => ({id:d.id,...d.data()})));
+    renderCatalog();
+  } catch(e) { console.error('Catalog load error:', e); }
+}
+
+// ══ RENDER STATS ══
+function renderStats() {
+  const total   = invoices.length;
+  const paidAmt = invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.grand||0),0);
+  const pending = invoices.filter(i=>i.status==='pending').length;
+  document.getElementById('s-total').textContent   = total;
+  document.getElementById('s-paid').textContent    = '₹'+fmtN(paidAmt);
+  document.getElementById('s-pending').textContent = pending;
+  document.getElementById('invCount').textContent  = total + (total===1?' invoice':' invoices');
+}
+function fmtN(n){return n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toFixed(0);}
+
+// ══ RENDER INVOICES ══
+function renderInvoices() {
+  const el = document.getElementById('invList');
+  if (!invoices.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">No invoices yet</div><div class="empty-sub">Tap + to create your first invoice</div></div>';
+    return;
+  }
+  el.innerHTML = invoices.map(inv => {
+    const sc = {paid:'sp-paid',pending:'sp-pending',overdue:'sp-overdue'}[inv.status]||'sp-pending';
+    const dt = inv.createdAt?.toDate ? inv.createdAt.toDate() : new Date();
+    return `<div class="inv-card" onclick="openDet('${inv.id}')">
+      <div class="inv-ico">🧾</div>
+      <div class="inv-body">
+        <div class="inv-client">${esc(inv.clientName)}</div>
+        <div class="inv-meta">${esc(inv.invNum)} · ${dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+      </div>
+      <div class="inv-right">
+        <div class="inv-amt">₹${(inv.grand||0).toFixed(2)}</div>
+        <div class="spill ${sc}">${inv.status||'pending'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══ RENDER CATALOG ══
+function renderCatalog() {
+  window._catalog = catalog;
+  // Main list
+  const el = document.getElementById('catList');
+  el.innerHTML = catalog.length
+    ? catalog.map(c=>`<div class="cat-card">
+        <div><div class="cat-name">${esc(c.name)}</div>${c.cat?`<div class="cat-cat-lbl">${esc(c.cat)}</div>`:''}</div>
+        <div style="display:flex;align-items:center;">
+          <span class="cat-price">₹${parseFloat(c.price||0).toFixed(2)}</span>
+          <button class="del-btn" onclick="delItem('${c.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty" style="padding:1.5rem 0;"><div class="empty-ico">📦</div><div class="empty-ttl">No items yet</div><div class="empty-sub">Add items for quick invoicing</div></div>';
+  // Picker
+  const pl = document.getElementById('pickList');
+  pl.innerHTML = catalog.length
+    ? catalog.map(c=>`<div class="pick-item" onclick="addFromCat('${c.id}')">
+        <div><div class="pick-name">${esc(c.name)}</div>${c.cat?`<div class="pick-cat-lbl">${esc(c.cat)}</div>`:''}</div>
+        <div style="display:flex;align-items:center;">
+          <span class="pick-price">₹${parseFloat(c.price||0).toFixed(2)}</span>
+          <button class="pick-add-btn" onclick="event.stopPropagation();addFromCat('${c.id}')">+ ADD</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty" style="padding:1.5rem 0;"><div class="empty-ico">📦</div><div class="empty-sub">No catalog items yet</div></div>';
+  // QR
+  setTimeout(()=>genQR(), 100);
+}
+
+function genQR() {
+  const canvas = document.getElementById('qrCanvas');
+  if (!canvas || !window.QRCode) return;
+  canvas.innerHTML = '';
+  const link = `${location.origin}${location.pathname.replace('dashboard.html','')}`;
+  try { new window.QRCode(canvas, {text:link,width:128,height:128,colorDark:'#000',colorLight:'#fff'}); } catch(e){}
+}
+
+window.copyLink = function() {
+  const link = `${location.origin}${location.pathname.replace('dashboard.html','')}`;
+  navigator.clipboard?.writeText(link).then(()=>showToast('🔗 Link copied!','#22c55e','#000')).catch(()=>prompt('Copy this link:',link));
+};
+
+// ══ SAVE CATALOG ITEM ══
+window.saveItem = async function() {
+  const name  = document.getElementById('nItemName').value.trim();
+  const price = parseFloat(document.getElementById('nItemPrice').value);
+  const cat   = document.getElementById('nItemCat').value.trim();
+  if (!name)       { showToast('❌ Item name is required','#ef4444','#fff'); return; }
+  if (!price || price<=0) { showToast('❌ Valid price is required','#ef4444','#fff'); return; }
+  if (!db) { showToast('⚠️ Firebase not configured','#f59e0b','#000'); return; }
+  try {
+    const ref = await addDoc(collection(db,'catalog'), {userId:user.id, name, price:Number(price.toFixed(2)), cat, createdAt:serverTimestamp()});
+    catalog.unshift({id:ref.id, name, price:Number(price.toFixed(2)), cat});
+    renderCatalog(); closeAddItem();
+    showToast('✅ Item added!','#22c55e','#000');
+  } catch(e) { showToast('❌ '+e.message,'#ef4444','#fff'); }
+};
+
+window.delItem = async function(id) {
+  if (!confirm('Delete this catalog item?')) return;
+  try {
+    await deleteDoc(doc(db,'catalog',id));
+    catalog = catalog.filter(c=>c.id!==id);
+    renderCatalog();
+    showToast('🗑 Item deleted','#f59e0b','#000');
+  } catch(e) { showToast('❌ '+e.message,'#ef4444','#fff'); }
+};
+
+// ══ SAVE INVOICE (bulletproof) ══
+window.saveInvoice = async function(sendWA) {
+  const clientName  = document.getElementById('cliName').value.trim();
+  const clientPhone = document.getElementById('cliPhone').value.trim();
+  const clientNote  = document.getElementById('cliNote').value.trim();
+  if (!clientName)  { showToast('❌ Enter customer name','#ef4444','#fff'); return; }
+  if (!clientPhone) { showToast('❌ Enter WhatsApp number','#ef4444','#fff'); return; }
+
+  const items = getRows();
+  if (!items.length) { showToast('❌ Add at least one item with a price','#ef4444','#fff'); return; }
+
+  const sub   = items.reduce((s,i)=>s+(i.qty*i.price),0);
+  const disc  = Math.max(0, parseFloat(document.getElementById('disc').value)||0);
+  const taxP  = Math.max(0, parseFloat(document.getElementById('taxPct').value)||0);
+  const taxA  = (sub-disc)*taxP/100;
+  const grand = Math.max(0, sub-disc+taxA);
+  if (disc > sub) { showToast('❌ Discount cannot exceed subtotal','#ef4444','#fff'); return; }
+
+  const status   = document.getElementById('invSt').value;
+  const mode     = document.getElementById('invMode').value;
+  const shopName = user.shop || user.name || 'Invoicebillers';
+  const ts       = Date.now();
+  const invNum   = 'INV-' + ts.toString(36).toUpperCase().slice(-5) + String(Math.floor(Math.random()*100)).padStart(2,'0');
+
+  const b1 = document.getElementById('saveBtn');
+  const b2 = document.getElementById('saveSilentBtn');
+  b1.disabled = b2.disabled = true;
+  b1.textContent = '⏳ Saving…';
+
+  const data = {
+    userId: user.id,
+    invNum,
+    clientName,
+    clientPhone,
+    clientNote,
+    items: items.map(i=>({name:i.name, price:+i.price.toFixed(2), qty:+i.qty})),
+    subtotal: +sub.toFixed(2),
+    disc:     +disc.toFixed(2),
+    tax:      +taxP,
+    taxAmt:   +taxA.toFixed(2),
+    grand:    +grand.toFixed(2),
+    status,
+    mode,
+    shopName,
+    createdAt: serverTimestamp()
+  };
+
+  if (!db) {
+    // No Firebase — still show WA message
+    showToast('⚠️ Firebase not set — invoice not stored','#f59e0b','#000');
+    b1.disabled=b2.disabled=false; b1.textContent='📲 Save & Send via WhatsApp'; return;
+  }
+
+  try {
+    const ref = await addDoc(collection(db,'invoices'), data);
+    // Immediately push to local state so UI updates even before snapshot arrives
+    const localInv = {...data, id:ref.id, createdAt:{toDate:()=>new Date(ts)}};
+    invoices.unshift(localInv);
+    renderStats(); renderInvoices();
+
+    showPage('home'); setNav('home');
+    showToast('✅ Invoice saved!','#22c55e','#000');
+
+    if (sendWA) {
+      const phone = clientPhone.replace(/\D/g,'');
+      const msg   = buildWAMsg({...data, grand});
+      if (phone) setTimeout(()=>window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank'),700);
+      else showToast('ℹ️ No phone number — cannot open WhatsApp','#f59e0b','#000');
+    }
+  } catch(e) {
+    console.error('saveInvoice error:', e);
+    showToast('❌ Save failed: '+e.message,'#ef4444','#fff');
+  } finally {
+    b1.disabled=b2.disabled=false;
+    b1.textContent='📲 Save & Send via WhatsApp';
+  }
+};
+
+function buildWAMsg(inv) {
+  const ln = '━━━━━━━━━━━━━━━\n';
+  let m = `📄 *Invoice from ${inv.shopName}*\n*${inv.invNum}*\n${ln}`;
+  m += `👤 Customer: ${inv.clientName}\n`;
+  if (inv.clientNote) m += `📝 ${inv.clientNote}\n`;
+  m += `\n*Items:*\n`;
+  inv.items.forEach(i=>{ m += `• ${i.name} ×${i.qty} @ ₹${i.price.toFixed(2)} = *₹${(i.qty*i.price).toFixed(2)}*\n`; });
+  m += `\n${ln}`;
+  m += `Subtotal: ₹${inv.subtotal.toFixed(2)}\n`;
+  if (inv.disc>0)  m += `Discount: -₹${inv.disc.toFixed(2)}\n`;
+  if (inv.tax>0)   m += `Tax (${inv.tax}%): +₹${inv.taxAmt.toFixed(2)}\n`;
+  m += `*Grand Total: ₹${inv.grand.toFixed(2)}*\n`;
+  m += `Mode: ${inv.mode} | Status: ${inv.status.toUpperCase()}\n`;
+  m += `\nThank you for your business! 🙏\n_Sent via Invoicebillers_`;
+  return m;
+}
+
+// ══ INVOICE DETAIL ══
+window.openDet = function(id) {
+  const inv = invoices.find(i=>i.id===id); if(!inv) return;
+  currentDetId = id;
+  const sc = {paid:'sp-paid',pending:'sp-pending',overdue:'sp-overdue'}[inv.status]||'sp-pending';
+  const dt = inv.createdAt?.toDate ? inv.createdAt.toDate() : new Date();
+  document.getElementById('detContent').innerHTML = `
+    <div class="det-box">
+      <div class="det-inv-num">${esc(inv.invNum)}</div>
+      <div class="det-date">${dt.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})} at ${dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div style="margin-top:0.6rem;"><span class="spill ${sc}">${inv.status||'pending'}</span></div>
+      <div class="det-client">${esc(inv.clientName)}</div>
+      <div class="det-contact">📱 ${esc(inv.clientPhone||'—')} &nbsp;·&nbsp; 💳 ${esc(inv.mode||'Cash')}</div>
+      ${inv.clientNote?`<div style="font-size:0.8rem;color:var(--muted);margin-top:0.4rem;">📝 ${esc(inv.clientNote)}</div>`:''}
+    </div>
+    <div class="det-box">
+      <table class="det-table">
+        <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+        <tbody>${(inv.items||[]).map(i=>`<tr>
+          <td>${esc(i.name)}</td><td>${i.qty}</td>
+          <td>₹${parseFloat(i.price||0).toFixed(2)}</td>
+          <td style="font-weight:700;">₹${(i.qty*i.price).toFixed(2)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="totals-box">
+        <div class="t-row"><span class="tl">Subtotal</span><span class="tv">₹${(inv.subtotal||0).toFixed(2)}</span></div>
+        ${inv.disc>0?`<div class="t-row t-disc"><span class="tl">Discount</span><span class="tv">-₹${(inv.disc||0).toFixed(2)}</span></div>`:''}
+        ${inv.tax>0?`<div class="t-row t-tax"><span class="tl">Tax (${inv.tax}%)</span><span class="tv">+₹${(inv.taxAmt||0).toFixed(2)}</span></div>`:''}
+        <div class="t-row t-grand"><span class="tl">Grand Total</span><span class="tv">₹${(inv.grand||0).toFixed(2)}</span></div>
+      </div>
+    </div>
+    <button class="wa-btn" onclick="shareWA('${id}')">📲 Share on WhatsApp</button>
+    <button class="del-inv-btn" onclick="deleteInvoice('${id}')">🗑 Delete Invoice</button>
+  `;
+  // Wire header action buttons
+  document.getElementById('detShareBtn').onclick  = () => shareWA(id);
+  document.getElementById('detDeleteBtn').onclick = () => deleteInvoice(id);
+  document.getElementById('detOverlay').classList.add('open');
+};
+window.closeDet = () => { document.getElementById('detOverlay').classList.remove('open'); currentDetId = null; };
+
+window.shareWA = function(id) {
+  const inv = invoices.find(i=>i.id===id); if(!inv) return;
+  const phone = (inv.clientPhone||'').replace(/\D/g,'');
+  const msg = buildWAMsg(inv);
+  window.open(phone?`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+};
+
+window.deleteInvoice = async function(id) {
+  if (!confirm('Delete this invoice permanently? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db,'invoices',id));
+    invoices = invoices.filter(i=>i.id!==id);
+    renderStats(); renderInvoices(); closeDet();
+    showToast('🗑 Invoice deleted','#f59e0b','#000');
+  } catch(e) { showToast('❌ '+e.message,'#ef4444','#fff'); }
+};
+
+// ══ REFRESH ══
+window.refreshAll = function() {
+  if(unsubInv){unsubInv();unsubInv=null;}
+  document.getElementById('invList').innerHTML='<div class="loading">Loading invoices</div>';
+  loadInvoices(); loadCatalog();
+  showToast('🔄 Refreshed','#22c55e','#000');
+};
+
+// ══ LOGOUT ══
+window.logout = function() {
+  if (!confirm('Sign out of Invoicebillers?')) return;
+  if (unsubInv) unsubInv();
+  localStorage.removeItem('ib_user');
+  window.location.replace('index.html');
+};
+
+// ── helpers ──
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+window.esc = esc;
+window.showToast = showToast;
+
+// ── Init ──
+loadInvoices();
+loadCatalog();
+</script>
+
+<!-- QRCode lib -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- UI LOGIC -->
+<script>
+// ── Pages / Nav ──
+function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);}
+function setNav(n){document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active');}
+window.showPage=showPage; window.setNav=setNav;
+
+// ── Tabs ──
+window.switchTab=function(t){
+  const isInv=t==='inv';
+  document.getElementById('tc-inv').style.display   = isInv?'block':'none';
+  document.getElementById('tc-items').style.display = isInv?'none':'block';
+  document.getElementById('tab-inv').classList.toggle('active',isInv);
+  document.getElementById('tab-items').classList.toggle('active',!isInv);
+};
+
+// ── Init new invoice ──
+window.initNewInvoice=function(){
+  ['cliName','cliPhone','cliNote','disc','taxPct'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('invSt').value='pending';
+  document.getElementById('invMode').value='Cash';
+  document.getElementById('iRows').innerHTML='';
+  calcTotals(); addBlankRow();
+  // reset buttons
+  const b1=document.getElementById('saveBtn');
+  if(b1){b1.disabled=false;b1.textContent='📲 Save & Send via WhatsApp';}
+};
+
+// ── Item rows ──
+window.addBlankRow=function(){
+  const wrap=document.getElementById('iRows');
+  const d=document.createElement('div'); d.className='irow';
+  d.innerHTML=`
+    <div class="irow-top">
+      <input class="iname" type="text" placeholder="Item name" oninput="calcTotals()"/>
+      <button class="idel" onclick="delRow(this)" title="Remove">🗑</button>
+    </div>
+    <div class="irow-nums">
+      <div class="mini-fld"><div class="mini-lbl">Price ₹</div><input class="mini-inp" type="number" placeholder="0" min="0" step="0.01" oninput="calcTotals()"/></div>
+      <div class="mini-fld"><div class="mini-lbl">Qty</div><input class="mini-inp" type="number" value="1" min="0.01" step="0.01" oninput="calcTotals()"/></div>
+      <div class="mini-fld"><div class="mini-lbl">Total</div><input class="mini-inp mini-total" type="text" readonly/></div>
+    </div>`;
+  wrap.appendChild(d);
+  d.querySelector('.iname').focus();
+  calcTotals();
+};
+
+window.delRow=function(btn){
+  if(document.querySelectorAll('.irow').length<=1){showToast('⚠️ At least one item required','#f59e0b','#000');return;}
+  btn.closest('.irow').remove(); calcTotals();
+};
+
+function getRows(){
+  return [...document.querySelectorAll('.irow')].map(r=>{
+    const ins=r.querySelectorAll('.mini-inp');
+    return {name:r.querySelector('.iname').value.trim(), price:parseFloat(ins[0]?.value)||0, qty:parseFloat(ins[1]?.value)||1};
+  }).filter(i=>i.name&&i.price>0);
+}
+window.getRows=getRows;
+
+window.calcTotals=function(){
+  let sub=0;
+  document.querySelectorAll('.irow').forEach(r=>{
+    const ins=r.querySelectorAll('.mini-inp');
+    const p=parseFloat(ins[0]?.value)||0, q=parseFloat(ins[1]?.value)||1, t=p*q;
+    sub+=t; if(ins[2])ins[2].value='₹'+t.toFixed(2);
+  });
+  const disc=Math.max(0,parseFloat(document.getElementById('disc')?.value)||0);
+  const taxP=Math.max(0,parseFloat(document.getElementById('taxPct')?.value)||0);
+  const taxA=(sub-disc)*taxP/100, grand=Math.max(0,sub-disc+taxA);
+  const s=id=>{const e=document.getElementById(id);if(e)e.textContent=arguments[1];};
+  // workaround for arrow fn with args
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('tSub','₹'+sub.toFixed(2));
+  set('tDisc','-₹'+disc.toFixed(2));
+  set('tTax','+₹'+taxA.toFixed(2));
+  set('tGrand','₹'+grand.toFixed(2));
+};
+
+// ── Catalog picker ──
+window.openCatPicker =()=>document.getElementById('catModal').classList.add('open');
+window.closeCatPicker=()=>document.getElementById('catModal').classList.remove('open');
+
+window.addFromCat=function(id){
+  const cat=window._catalog||[], item=cat.find(c=>c.id===id); if(!item)return;
+  const ex=[...document.querySelectorAll('.iname')].find(n=>n.value===item.name);
+  if(ex){const qi=ex.closest('.irow').querySelectorAll('.mini-inp')[1];qi.value=parseFloat(qi.value||1)+1;calcTotals();closeCatPicker();return;}
+  addBlankRow();
+  const rows=document.querySelectorAll('.irow'), last=rows[rows.length-1];
+  last.querySelector('.iname').value=item.name;
+  last.querySelectorAll('.mini-inp')[0].value=item.price;
+  last.querySelectorAll('.mini-inp')[1].value=1;
+  calcTotals(); closeCatPicker();
+};
+
+// ── Add item modal ──
+window.openAddItem =()=>{document.getElementById('addItemModal').classList.add('open');document.getElementById('nItemName').focus();};
+window.closeAddItem=()=>document.getElementById('addItemModal').classList.remove('open');
+
+// ── Toast ──
+let _tt;
+function showToast(msg,bg,col){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=bg||'#22c55e';t.style.color=col||'#000';
+  t.style.display='block';clearTimeout(_tt);_tt=setTimeout(()=>t.style.display='none',3500);
+}
+window.showToast=showToast;
+
+// ── Desktop nav ──
+function applyDesktop(){
+  const isDesktop=window.innerWidth>=768;
+  const logo=document.querySelector('.nav-logo');
+  const fabTxt=document.querySelector('.fab-txt');
+  const fabIco=document.querySelector('.fab-ico');
+  if(logo)logo.style.display=isDesktop?'flex':'none';
+  if(fabTxt)fabTxt.style.display=isDesktop?'inline':'none';
+  if(fabIco)fabIco.style.display=isDesktop?'none':'';
+}
+window.addEventListener('resize',applyDesktop);
+applyDesktop();
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('detOverlay').classList.contains('open')){closeDet();return;}
+    if(document.getElementById('catModal').classList.contains('open')){closeCatPicker();return;}
+    if(document.getElementById('addItemModal').classList.contains('open')){closeAddItem();return;}
+  }
+});
+
+// ── Back button intercept ──
+// Push a dummy history state so the back button hits it first instead of leaving the page
+history.pushState({page:'dashboard'}, '', window.location.href);
+
+window.addEventListener('popstate', function(e) {
+  // If any overlay/modal is open — close it instead of going back
+  if (document.getElementById('detOverlay').classList.contains('open')) {
+    closeDet();
+    history.pushState({page:'dashboard'}, '', window.location.href);
+    return;
+  }
+  if (document.getElementById('catModal').classList.contains('open')) {
+    closeCatPicker();
+    history.pushState({page:'dashboard'}, '', window.location.href);
+    return;
+  }
+  if (document.getElementById('addItemModal').classList.contains('open')) {
+    closeAddItem();
+    history.pushState({page:'dashboard'}, '', window.location.href);
+    return;
+  }
+  // If on invoice form — go back to home, NOT logout
+  const invoicePage = document.getElementById('page-invoice');
+  if (invoicePage && invoicePage.classList.contains('active')) {
+    showPage('home'); setNav('home');
+    history.pushState({page:'dashboard'}, '', window.location.href);
+    return;
+  }
+  // On home — ask before leaving
+  const stay = confirm('Leave Invoicebillers? You will stay signed in.');
+  if (stay) {
+    // User confirmed exit — go back without logout
+    history.back();
+  } else {
+    // Stay on dashboard
+    history.pushState({page:'dashboard'}, '', window.location.href);
+  }
+});
+
+// ── Prevent page unload from clearing auth ──
+// (Auth is now in localStorage — survives everything except explicit logout)
+
+// Init
+addBlankRow();
+</script>
+</body>
+</html>
